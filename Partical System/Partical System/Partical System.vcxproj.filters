@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="SourceCode\tutorial18_particles.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="include\glad\glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -25,6 +22,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="include\common\shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SourceCode\Cube3D.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="include\common\texture.cpp">
@@ -38,19 +38,13 @@
     <ClInclude Include="include\glad\khrplatform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="common\controls.hpp">
+    <ClInclude Include="include\common\controls.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="common\shader.hpp">
+    <ClInclude Include="include\common\shader.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="common\texture.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\GLFW\glfw3.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\GL\glew.h">
+    <ClInclude Include="include\common\texture.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -23,16 +23,14 @@
     <ClCompile Include="include\common\shader.cpp" />
     <ClCompile Include="include\common\texture.cpp" />
     <ClCompile Include="include\glad\glad.c" />
-    <ClCompile Include="SourceCode\tutorial18_particles.cpp" />
+    <ClCompile Include="SourceCode\Cube3D.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="common\controls.hpp" />
-    <ClInclude Include="common\shader.hpp" />
-    <ClInclude Include="common\texture.hpp" />
+    <ClInclude Include="include\common\controls.hpp" />
+    <ClInclude Include="include\common\shader.hpp" />
+    <ClInclude Include="include\common\texture.hpp" />
     <ClInclude Include="include\glad\glad.h" />
     <ClInclude Include="include\glad\khrplatform.h" />
-    <ClInclude Include="include\GLFW\glfw3.h" />
-    <ClInclude Include="include\GL\glew.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -107,13 +105,13 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CRT_SECURE_NO_WARNINGS;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>D:\Github_repository\CSCI-5611\Partical System\Partical System\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\Github_repository\CSCI-5611\Partical System\Partical System\include;D:\SDL2-2.0.8\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>D:\Github_repository\CSCI-5611\Partical System\Partical System\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glfw3.lib;glew32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\Github_repository\CSCI-5611\Partical System\Partical System\lib;D:\SDL2-devel-2.0.8-VC\SDL2-2.0.8\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;glew32.lib;SDL2.lib;SDL2main.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

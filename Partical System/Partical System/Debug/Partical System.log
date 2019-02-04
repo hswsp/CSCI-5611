@@ -1,3 +1,13 @@
-﻿  tutorial18_particles.cpp
-d:\github_repository\csci-5611\partical system\partical system\sourcecode\tutorial18_particles.cpp(246): warning C4244: '-=': conversion from 'double' to 'float', possible loss of data
+﻿  Cube3D.cpp
+d:\github_repository\csci-5611\partical system\partical system\sourcecode\cube3d.cpp(128): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+d:\github_repository\csci-5611\partical system\partical system\sourcecode\cube3d.cpp(161): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+d:\github_repository\csci-5611\partical system\partical system\sourcecode\cube3d.cpp(311): warning C4244: '-=': conversion from 'double' to 'float', possible loss of data
+d:\github_repository\csci-5611\partical system\partical system\sourcecode\cube3d.cpp(321): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
+          with
+          [
+              T=float
+          ]
+  controls.cpp
+d:\github_repository\csci-5611\partical system\partical system\include\common\controls.cpp(50): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+  Generating Code...
   Partical System.vcxproj -> D:\Github_repository\CSCI-5611\Partical System\Debug\Partical System.exe
