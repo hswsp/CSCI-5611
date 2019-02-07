@@ -14,8 +14,8 @@
 
 #include <vector>
 #include <algorithm>
-#include <GL/glew.h>
-//#include "glad/glad.h"  
+
+#include "glad/glad.h"  //Include order can matter here
 #include<stdlib.h>
 #include<stdio.h>
 
@@ -26,7 +26,6 @@
  #include <SDL.h>
  #include <SDL_opengl.h>
 #endif
-SDL_Window* window;
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -36,16 +35,13 @@ using namespace glm;
 #include "common/shader.hpp"
 #include "common/texture.hpp"
 #include "common/controls.hpp"
-#define GRAVITY -9.81
+
 
 
 bool fullscreen = false;
-//extern variable
-float screenWidth = 2048;
-float screenHeight = 1536;
-double delta = 0.0;
-glm::vec3 emitPos=glm::vec3(0, 0.0, -20.0f);
-const float floory = -1.0;
+int screenWidth = 800;
+int screenHeight = 600;
+
 // CPU representation of a particle
 struct Particle {
 	glm::vec3 pos, speed;
@@ -105,8 +101,7 @@ void SortParticles() {
 #define GLM_FORCE_RADIANS //ensure we are using radians
 
 
-int main(int argc, char *argv[]) 
-{
+int main(int argc, char *argv[]) {
   SDL_Init(SDL_INIT_VIDEO);  //Initialize Graphics (for OpenGL)
     
   //Print the version of SDL we are using 
@@ -119,31 +114,19 @@ int main(int argc, char *argv[])
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-  //int w, h;
-  //SDL_GetWindowSize(window, &w, &h);
-  //screenWidth = 0.32*w;
-  //screenHeight = 0.427*h;
+    
   //Create a window (offsetx, offsety, width, height, flags)
-  window = SDL_CreateWindow("My OpenGL Program", 50, 25, 
-                                        screenWidth/2, screenHeight/2, SDL_WINDOW_OPENGL);
+  SDL_Window* window = SDL_CreateWindow("My OpenGL Program", 200, 100, 
+                                        screenWidth, screenHeight, SDL_WINDOW_OPENGL);
   if (!window){
     printf("Could not create window: %s\n", SDL_GetError()); 
     return EXIT_FAILURE; //Exit as SDL failed 
   }
- 
-
   float aspect = screenWidth/(float)screenHeight; //aspect ratio needs update on resize
           
   SDL_GLContext context = SDL_GL_CreateContext(window); //Bind OpenGL to the window
-  // Initialize GLEW
-  glewExperimental = true; // Needed for core profile
-  if (glewInit() != GLEW_OK) {
-	  fprintf(stderr, "Failed to initialize GLEW\n");
-	  getchar();
-	  SDL_Quit();
-	  return -1;
-  }
- /* if (gladLoadGLLoader(SDL_GL_GetProcAddress)){
+
+  if (gladLoadGLLoader(SDL_GL_GetProcAddress)){
     printf("OpenGL loaded\n");
     printf("Vendor:   %s\n", glGetString(GL_VENDOR));
     printf("Renderer: %s\n", glGetString(GL_RENDERER));
@@ -152,14 +135,7 @@ int main(int argc, char *argv[])
   else {
     printf("ERROR: Failed to initialize OpenGL context.\n");
     return -1;
-  }*/
-
-  //glViewport(0, 0, screenWidth, screenHeight);
-
-  
-  SDL_SetRelativeMouseMode(SDL_TRUE);
-  SDL_WarpMouseGlobal(screenWidth / 2, screenHeight / 2);
-  //SDL_WarpMouseInWindow(window, screenWidth / 2, screenHeight / 2);
+  }
   // Dark blue background
   glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
@@ -227,27 +203,45 @@ int main(int argc, char *argv[])
 
 
 
-  double lastTime = SDL_GetTicks()/1000.0; //glfwGetTime();
+  double lastTime = SDL_GetTicks(); //glfwGetTime();
  
   
  
-  //glm::vec3 Positon(0.0f, 0.0f, 0.0f);  //Look at point
+  glm::vec3 Positon(0.0f, 0.0f, 0.0f);  //Look at point
   SDL_Event windowEvent;
   bool quit = false;
-  while (!quit)
-  {
- 
-	SDL_GL_SwapWindow(window);
+  while (!quit){
+    while (SDL_PollEvent(&windowEvent))
+	{
+      if (windowEvent.type == SDL_QUIT) quit = true; //Exit Game Loop
+      if (windowEvent.type == SDL_KEYUP && (windowEvent.key.keysym.sym == SDLK_ESCAPE|| windowEvent.key.keysym.sym == SDLK_q))
+        quit = true; //Exit Game Loop
+      if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_f){ 
+        fullscreen = !fullscreen; 
+        SDL_SetWindowFullscreen(window, fullscreen ? SDL_WINDOW_FULLSCREEN : 0);
+      }  
+	  if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_UP) {
+		  Positon = Positon - glm::vec3(0.0f, 0.0f, 0.1f);
+	  }
+	  if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_DOWN) {
+		  Positon = Positon + glm::vec3(0.0f, 0.0f, 0.1f);
+	  }
+	  if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_RIGHT) {
+		  Positon = Positon - glm::vec3(0.0f, 0.1f, 0.0f);
+	  }
+	  if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_LEFT) {
+		  Positon = Positon + glm::vec3(0.0f, 0.1f, 0.0f);
+	  }
+    }
 	// Clear the screen
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	double currentTime = SDL_GetTicks()/1000.0; //glfwGetTime();
-	delta = currentTime - lastTime;
-
-	computeMatricesFromInputs(windowEvent, quit);
+	double currentTime = SDL_GetTicks(); //glfwGetTime();
+	double delta = currentTime - lastTime;
 	lastTime = currentTime;
 
-	
+
+	//computeMatricesFromInputs();
 	glm::mat4 ProjectionMatrix = getProjectionMatrix();
 	glm::mat4 ViewMatrix = getViewMatrix();
 
@@ -270,7 +264,7 @@ int main(int argc, char *argv[])
 	for (int i = 0; i < newparticles; i++) {
 		int particleIndex = FindUnusedParticle();
 		ParticlesContainer[particleIndex].life = 5.0f; // This particle will live 5 seconds.
-		ParticlesContainer[particleIndex].pos = emitPos;
+		ParticlesContainer[particleIndex].pos = glm::vec3(0, 0, -20.0f);
 
 		float spread = 1.5f;
 		glm::vec3 maindir = glm::vec3(0.0f, 10.0f, 0.0f);
@@ -299,7 +293,6 @@ int main(int argc, char *argv[])
 
 
 	// Simulate all particles
-	glm::vec3 floorN = vec3(0, 1, 0);
 	int ParticlesCount = 0;
 	for (int i = 0; i < MaxParticles; i++) {
 
@@ -312,15 +305,8 @@ int main(int argc, char *argv[])
 			if (p.life > 0.0f) {
 
 				// Simulate simple physics : gravity only, no collisions
-				p.speed += glm::vec3(0.0f, GRAVITY, 0.0f) * (float)delta * 0.5f;
+				p.speed += glm::vec3(0.0f, -9.81f, 0.0f) * (float)delta * 0.5f;
 				p.pos += p.speed * (float)delta;
-				if (p.pos.y < floory)
-				{
-					p.pos.y = floory;
-					//p.speed *= 0.95f*(float(2*glm::dot(floorN,-p.speed))*floorN + p.speed);
-					p.speed.y = -0.95*p.speed.y;
-				}
-				
 				p.cameradistance = glm::length2(p.pos - CameraPosition);
 				//ParticlesContainer[i].pos += glm::vec3(0.0f,10.0f, 0.0f) * (float)delta;
 
@@ -442,7 +428,7 @@ int main(int argc, char *argv[])
 	glDisableVertexAttribArray(2);
 
 	// Swap buffers
-	//SDL_GL_SwapWindow(window); //Double buffering 
+	SDL_GL_SwapWindow(window); //Double buffering 
 
   }
   delete[] g_particule_position_size_data;
@@ -456,7 +442,7 @@ int main(int argc, char *argv[])
   glDeleteVertexArrays(1, &VertexArrayID);
 
   SDL_GL_DeleteContext(context);
-  //SDL_GL_DeleteContext(context);
+  SDL_GL_DeleteContext(context);
   SDL_Quit();
 
   return 0;
