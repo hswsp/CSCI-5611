@@ -1,0 +1,16 @@
+.vs/
+Debug/
+Release/
+.sln
+.cpp
+Partical System/Debug/
+Partical System/Release/
+Partical System/cube.fragmentshader
+Partical System/cube.vertexshader
+Partical System/include/.bak
+Partical System/.dll
+Partical System/.vcxproj
+Partical System/Partical System.vcxproj.filters
+Partical System/Partical System.vcxproj.user
+Partical System/TextureFragmentShader.fragmentshader
+Partical System/TransformVertexShader.vertexshader

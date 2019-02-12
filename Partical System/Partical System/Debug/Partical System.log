@@ -1,9 +1,56 @@
-﻿  tutorial18_particles.cpp
-e:\umn\animation\hw1\partical system\partical system\sourcecode\tutorial18_particles.cpp(85): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-e:\umn\animation\hw1\partical system\partical system\sourcecode\tutorial18_particles.cpp(257): warning C4244: '-=': conversion from 'double' to 'float', possible loss of data
-e:\umn\animation\hw1\partical system\partical system\sourcecode\tutorial18_particles.cpp(267): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
+﻿  particles.cpp
+d:\github_repository\csci-5611\partical system\partical system\sourcecode\particles.cpp(298): warning C4305: 'initializing': truncation from 'double' to 'float'
+d:\github_repository\csci-5611\partical system\partical system\sourcecode\particles.cpp(356): warning C4305: 'initializing': truncation from 'double' to 'float'
+d:\github_repository\csci-5611\partical system\partical system\sourcecode\particles.cpp(357): warning C4305: 'initializing': truncation from 'double' to 'float'
+d:\github_repository\csci-5611\partical system\partical system\sourcecode\particles.cpp(415): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+d:\github_repository\csci-5611\partical system\partical system\sourcecode\particles.cpp(562): warning C4244: '=': conversion from 'T' to 'unsigned char', possible loss of data
           with
           [
               T=float
           ]
-  Partical System.vcxproj -> E:\UMN\Animation\HW1\Partical System\Debug\Partical System.exe
+d:\github_repository\csci-5611\partical system\partical system\sourcecode\particles.cpp(563): warning C4244: '=': conversion from 'T' to 'unsigned char', possible loss of data
+          with
+          [
+              T=float
+          ]
+d:\github_repository\csci-5611\partical system\partical system\sourcecode\particles.cpp(564): warning C4244: '=': conversion from 'T' to 'unsigned char', possible loss of data
+          with
+          [
+              T=float
+          ]
+d:\github_repository\csci-5611\partical system\partical system\sourcecode\particles.cpp(753): warning C4244: '-=': conversion from 'double' to 'float', possible loss of data
+d:\github_repository\csci-5611\partical system\partical system\sourcecode\particles.cpp(763): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+d:\github_repository\csci-5611\partical system\partical system\sourcecode\particles.cpp(783): warning C4244: '=': conversion from 'T' to 'unsigned char', possible loss of data
+          with
+          [
+              T=float
+          ]
+d:\github_repository\csci-5611\partical system\partical system\sourcecode\particles.cpp(784): warning C4244: '=': conversion from 'T' to 'unsigned char', possible loss of data
+          with
+          [
+              T=float
+          ]
+d:\github_repository\csci-5611\partical system\partical system\sourcecode\particles.cpp(785): warning C4244: '=': conversion from 'T' to 'unsigned char', possible loss of data
+          with
+          [
+              T=float
+          ]
+d:\github_repository\csci-5611\partical system\partical system\sourcecode\particles.cpp(795): warning C4244: '=': conversion from 'T' to 'GLubyte', possible loss of data
+          with
+          [
+              T=float
+          ]
+d:\github_repository\csci-5611\partical system\partical system\sourcecode\particles.cpp(796): warning C4244: '=': conversion from 'T' to 'GLubyte', possible loss of data
+          with
+          [
+              T=float
+          ]
+d:\github_repository\csci-5611\partical system\partical system\sourcecode\particles.cpp(797): warning C4244: '=': conversion from 'T' to 'GLubyte', possible loss of data
+          with
+          [
+              T=float
+          ]
+d:\github_repository\csci-5611\partical system\partical system\sourcecode\particles.cpp(1174): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+d:\github_repository\csci-5611\partical system\partical system\sourcecode\particles.cpp(1175): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+d:\github_repository\csci-5611\partical system\partical system\sourcecode\particles.cpp(1381): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+  Partical System.vcxproj -> D:\Github_repository\CSCI-5611\Partical System\Debug\Partical System.exe
