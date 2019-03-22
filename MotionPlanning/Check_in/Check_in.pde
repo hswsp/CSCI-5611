@@ -1,5 +1,5 @@
 import queasycam.*;
-
+import java.awt.event.KeyEvent;
 QueasyCam cam;
 
 void setup() 
@@ -25,11 +25,19 @@ void setup()
   pball.set(0,0,0).mult(mag);
   
   PRM();
-  AStarSearch();
+  SearchRoad();
+  targetItr=Path.iterator();
+  if(targetItr.hasNext())
+  {
+    NexttarId=CurtarId = targetItr.next();
+  }
 }
 void update(float dt) 
 {
- 
+  if(IsStartAnimation)
+  {
+    UpdateAgent(dt);
+  }
 }
 //Allow the user to push the mass with the left and right keys
 void keyPressed() {
@@ -55,6 +63,10 @@ void keyPressed() {
   if (keyCode == BACKSPACE){
     
   }
+  if (keyCode == KeyEvent.VK_SPACE ){//SAPCE
+    IsStartAnimation=true;
+  }
+  
 }
 void keyReleased()
 {
@@ -68,7 +80,9 @@ void mouseDragged()
 
 void draw() 
 {
+  float dt=0.01;
   background(255,255,255);
+  update(dt);
   //ambientLight(102, 102, 102);
   //directionalLight(51, 102, 126, 0, 0, -1);
   //spotLight(51, 102, 126, 0, 0, 20, 0, 0, -1, PI/2, 1);
@@ -112,8 +126,6 @@ void drawRoadmap()
   popMatrix();
   
   pushMatrix();
-  stroke(255,255,255);
-  strokeWeight(5);
   for(int i=0;i<dimension;++i)
   {
     for(int j=0;j<dimension;++j)
@@ -122,7 +134,19 @@ void drawRoadmap()
       {
         PVector P1=samples.get(i);
         PVector P2=samples.get(j);
+        //show edges
+        stroke(255,255,255);
+        strokeWeight(2);
         line(P1.x,P1.y,Z,P2.x,P2.y,Z);
+        
+        // show milestones
+        pushMatrix();
+        noStroke();
+        fill(186,85,211);
+        translate(P1.x,P1.y,Z);
+        rotate(frameCount / -100.0);
+        star(0, 0, 10, 23, 6); 
+        popMatrix();
       }
     }
   }
@@ -133,27 +157,12 @@ void drawPath()
   pushMatrix();
   stroke(255,0,255);
   strokeWeight(5);
-  Iterator<Node> iter = CLOSED.iterator(); 
-  int i=0;
-  int j=0;
-  Node cur=iter.next();
-  Node pre=cur.parent;
-  while(iter.hasNext())
+  for(int k=0;k<Path.size()-1;++k)
   {
-    pre=cur;
-    cur=iter.next();
-  }
-
-  while(pre!=null)
-  {
-    i=cur.Index;
-    j=pre.Index;
-    PVector P1=samples.get(i);
-    PVector P2=samples.get(j);
+    PVector P1=samples.get(Path.get(k));
+    PVector P2=samples.get(Path.get(k+1));
     //println("P1=(",P1.x,P1.y,")","P2=(",P2.x,P2.y,")");
     line(P1.x,P1.y,Z,P2.x,P2.y,Z); //<>//
-    cur=pre;
-    pre=pre.parent;
   }
   popMatrix();
 }
@@ -213,4 +222,53 @@ void drawsphere()
   translate(pball.x,pball.y,ballR*mag);
   sphere(radius);
   popMatrix();
+}
+
+boolean Arrival(PVector destination)
+{
+  float threshold=.1;
+  if(PVector.sub(destination,agentP).mag()<threshold)
+  {
+    println("arrival!");
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
+void UpdateAgent(float dt)
+{
+  PVector CurTarget=samples.get(CurtarId);
+  PVector NextTarget=samples.get(NexttarId);
+  PVector forward=new PVector();
+  if(Arrival(CurTarget))
+  {
+    if(targetItr.hasNext())
+    {
+      CurtarId = targetItr.next();
+      CurTarget=samples.get(CurtarId);
+      NexttarId = targetItr.next();
+      NextTarget=samples.get(NexttarId);
+    }
+    else
+    {
+      return;
+    }
+  }
+  if(intersection(agentP,NextTarget))
+  {
+    forward=PVector.sub(CurTarget,agentP).normalize();
+  }
+  else
+  {
+    forward=PVector.sub(NextTarget,agentP).normalize();
+    CurtarId = NexttarId;
+    if(targetItr.hasNext())
+    {
+      NexttarId = targetItr.next();
+    }
+  }
+  
+  agentP.add(PVector.mult(forward,mag*dt));
 }

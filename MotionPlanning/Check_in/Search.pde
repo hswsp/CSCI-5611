@@ -2,6 +2,7 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Stack;
 class Node
 {
   int Index;//current node index in samples
@@ -46,11 +47,11 @@ class Node
 }//class
 
 
-void AStarSearch()
+void AStarSearch(ArrayList<Node>  CLOSED)
 {
   int dimension=samples.size();
   Queue<Node> OPEN = new PriorityQueue<Node>(dimension,idComparator);
-  CLOSED= new ArrayList<Node> (dimension);
+  
   Node Start=new Node(0);
   Start.g=0;
   Start.h=PVector.sub(samples.get(dimension-1),samples.get(Start.Index)).mag();
@@ -133,3 +134,31 @@ public static Comparator<Node> idComparator = new Comparator<Node>()//Small top 
       return (int) (c1.f - c2.f);
   }
 };
+
+void SearchRoad()
+{
+  int dimension=samples.size();
+  ArrayList<Node>  CLOSED= new ArrayList<Node> (dimension);
+  Path= new ArrayList<Integer> (dimension);
+  Stack<Integer> stack = new Stack();
+  AStarSearch(CLOSED);
+  Iterator<Node> iter = CLOSED.iterator(); 
+  Integer value=0;
+  Node cur=iter.next();
+  while(iter.hasNext())
+  {
+    cur=iter.next();
+  }
+  while(cur!=null)
+  {
+    value=cur.Index;
+    stack.push(value);
+    cur=cur.parent;
+  }
+  //store the index of the path node from start to goal
+  int totalNumber=stack.size();
+  for(int i=0; i<totalNumber; i++) 
+  { 
+    Path.add(stack.pop());//stack.get(i)
+  }
+}
