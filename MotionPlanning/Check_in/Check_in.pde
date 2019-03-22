@@ -17,7 +17,7 @@ void setup()
   cam.speed = 2;              // default is 3
   cam.sensitivity = 0.5;      // default is 2
   cam.controllable = true;
-  cam.position = new PVector(0,0,800);//
+  cam.position = new PVector(0,0,850);//
   cam.pan = -PI/2;
   perspective(PI/3, (float)width/height, 0.01, 10000);
   

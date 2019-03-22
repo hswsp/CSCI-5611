@@ -60,12 +60,13 @@ void AStarSearch()
   {
     Node q=OPEN.poll();
     q.generateSuccessor();
-    CLOSED.add(q);
+    
     for(Node successor:q.successors)
     {
       if(successor.Index==dimension-1)// successor is the goal
       {
         println("found goal!");
+        CLOSED.add(q);
         CLOSED.add(successor);
         return;
       }
@@ -117,9 +118,8 @@ void AStarSearch()
       {
         OPEN.add(successor);
       }
-      
     }//for
-    
+  CLOSED.add(q); 
   }//while
 }//function
 
