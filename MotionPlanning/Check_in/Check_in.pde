@@ -17,12 +17,15 @@ void setup()
   cam.speed = 2;              // default is 3
   cam.sensitivity = 0.5;      // default is 2
   cam.controllable = true;
-  cam.position = new PVector(0,0,1000);//
+  cam.position = new PVector(0,0,800);//
   cam.pan = -PI/2;
   perspective(PI/3, (float)width/height, 0.01, 10000);
   
   agentP.set(start.x,start.y,agentH/2).mult(mag);
-  pball.set(0,0,ballR).mult(mag);
+  pball.set(0,0,0).mult(mag);
+  
+  PRM();
+  AStarSearch();
 }
 void update(float dt) 
 {
@@ -71,9 +74,90 @@ void draw()
   //spotLight(51, 102, 126, 0, 0, 20, 0, 0, -1, PI/2, 1);
   drawcylinder();
   drawsphere();
+  drawRoadmap();
   CheckeredFloor();
   
+  drawPath();
 }
+void star(float x, float y, float radius1, float radius2, int npoints) 
+{
+  float angle = TWO_PI / npoints;
+  float halfAngle = angle/2.0;
+  beginShape();
+  for (float a = 0; a < TWO_PI; a += angle) {
+    float sx = x + cos(a) * radius2;
+    float sy = y + sin(a) * radius2;
+    vertex(sx, sy);
+    sx = x + cos(a+halfAngle) * radius1;
+    sy = y + sin(a+halfAngle) * radius1;
+    vertex(sx, sy);
+  }
+  endShape(CLOSE);
+}
+void drawRoadmap()
+{
+  int dimension=samples.size();
+  pushMatrix();
+  fill(0,0,255);
+  translate(mag*start.x, mag*start.y,Z);
+  rotate(frameCount / -100.0);
+  star(0, 0, 30, 70, 5); 
+  popMatrix();
+  
+  pushMatrix();
+  fill(0,255,0);
+  translate(mag*goal.x, mag*goal.y, Z);
+  rotate(frameCount / -100.0);
+  star(0, 0, 30, 70, 5); 
+  popMatrix();
+  
+  pushMatrix();
+  stroke(255,255,255);
+  strokeWeight(5);
+  for(int i=0;i<dimension;++i)
+  {
+    for(int j=0;j<dimension;++j)
+    {
+      if(weightmap[i][j]<Float.MAX_VALUE) 
+      {
+        PVector P1=samples.get(i);
+        PVector P2=samples.get(j);
+        line(P1.x,P1.y,Z,P2.x,P2.y,Z);
+      }
+    }
+  }
+  popMatrix();
+}
+void drawPath()
+{
+  pushMatrix();
+  stroke(255,0,255);
+  strokeWeight(5);
+  Iterator<Node> iter = CLOSED.iterator(); 
+  int i=0;
+  int j=0;
+  Node cur=iter.next();
+  Node pre=cur.parent;
+  while(iter.hasNext())
+  {
+    pre=cur;
+    cur=iter.next();
+  }
+
+  while(pre!=null)
+  {
+    i=cur.Index;
+    j=pre.Index;
+    PVector P1=samples.get(i);
+    PVector P2=samples.get(j);
+    //println("P1=(",P1.x,P1.y,")","P2=(",P2.x,P2.y,")");
+    line(P1.x,P1.y,Z,P2.x,P2.y,Z); //<>//
+    cur=pre;
+    pre=pre.parent;
+  }
+  popMatrix();
+}
+
 void CheckeredFloor() 
 {
   float boxw=mag;
@@ -123,10 +207,10 @@ void drawcylinder()
 void drawsphere()
 {
   float radius=ballR*mag;
-  fill(226,56,34);
+  fill(236, 229, 255);
   noStroke();
   pushMatrix();
-  translate(pball.x,pball.y,pball.z);
+  translate(pball.x,pball.y,ballR*mag);
   sphere(radius);
   popMatrix();
 }
