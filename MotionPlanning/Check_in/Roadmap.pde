@@ -11,9 +11,9 @@ void PRM()
   int Maxiter=50;
   for(int[] row:room)
   {
-    for(int point:row)
+    for(int p:row)
     {
-      point=0;//0 mean not be choosen
+      p=0;//0 mean not be choosen
     }
   }
   
@@ -60,7 +60,7 @@ void PRM()
     Map<Integer, Float> Distance = new HashMap<Integer, Float>();
     for(int j=0;j<dimension;++j)
     {
-       Distance.put(j,weightmap[i][j]);
+       Distance.put(j,weightmap[i][j]);//Initial
        PVector p1=samples.get(i);
        PVector p2=samples.get(j);
        if(i!=j && !intersection(p1,p2))
@@ -81,15 +81,17 @@ void PRM()
     
     //store K-NN distance
     int k=0;
+    boolean FoundNeighbor=false;
     for(Map.Entry<Integer,Float> mapping:list)
     { 
       float value=mapping.getValue();
       if(value!=Float.MAX_VALUE)
       {
-        weightmap[i][mapping.getKey()]=value;
+        weightmap[i][mapping.getKey()]= weightmap[mapping.getKey()][i]=value;
+        FoundNeighbor=true;
       }
       // System.out.println(mapping.getKey()+":"+mapping.getValue()); 
-       if(++k>K)
+       if(++k>K&&FoundNeighbor)
        {
          break;
        }
