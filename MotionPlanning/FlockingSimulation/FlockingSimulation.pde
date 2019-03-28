@@ -24,8 +24,9 @@ void setup()
   agentP.set(start.x,start.y,agentH/2).mult(mag);
   pball.set(0,0,0).mult(mag);
   
-  PRM();
-  SearchRoad();
+  //PRM_Road();
+  
+  RRT_Road();
   targetItr=Path.iterator();
   if(targetItr.hasNext())
   {
@@ -108,7 +109,7 @@ void star(float x, float y, float radius1, float radius2, int npoints)
   }
   endShape(CLOSE);
 }
-void drawRoadmap()
+void drawRoadmap()//draw PRM Road map
 {
   int dimension=samples.size();
   pushMatrix();
@@ -138,15 +139,6 @@ void drawRoadmap()
         stroke(255,255,255);
         strokeWeight(2);
         line(P1.x,P1.y,Z,P2.x,P2.y,Z);
-        
-        // show milestones
-        pushMatrix();
-        noStroke();
-        fill(186,85,211);
-        translate(P1.x,P1.y,Z);
-        rotate(frameCount / -100.0);
-        star(0, 0, 10, 23, 6); 
-        popMatrix();
       }
     }
   }
@@ -155,14 +147,21 @@ void drawRoadmap()
 void drawPath()
 {
   pushMatrix();
-  stroke(255,0,255);
   strokeWeight(5);
   for(int k=0;k<Path.size()-1;++k)
   {
     PVector P1=samples.get(Path.get(k));
     PVector P2=samples.get(Path.get(k+1));
-    //println("P1=(",P1.x,P1.y,")","P2=(",P2.x,P2.y,")");
+    stroke(255,0,255);
     line(P1.x,P1.y,Z,P2.x,P2.y,Z);
+    // show milestones
+    pushMatrix();
+    noStroke();
+    fill(186,85,211);
+    translate(P1.x,P1.y,Z);
+    rotate(frameCount / -100.0);
+    star(0, 0, 10, 23, 6); 
+    popMatrix();
   }
   popMatrix();
 }
