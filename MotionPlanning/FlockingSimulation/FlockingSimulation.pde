@@ -1,5 +1,6 @@
 import queasycam.*;
 import java.awt.event.KeyEvent;
+import java.lang.reflect.Method;
 QueasyCam cam;
 
 void setup() 
@@ -20,19 +21,43 @@ void setup()
   cam.position = new PVector(0,0,850);//
   cam.pan = -PI/2;
   perspective(PI/3, (float)width/height, 0.01, 10000);
-  
-  agentP.set(start.x,start.y,agentH/2).mult(mag);
-  pball.set(0,0,0).mult(mag);
-  
-  //PRM_Road();
-  
-  RRT_Road();
-  targetItr=Path.iterator();
-  if(targetItr.hasNext())
-  {
-    NexttarId=CurtarId = targetItr.next();
-  }
+  InitialObstacles(pball,ballR);
+  InitAgents();
+ //<>//
 }
+void InitAgents()
+{
+  agents=new RRTAgent[AgentNum];
+  //Magents = new PRMAgent[AgentNum];
+  for(int i=0;i<AgentNum;++i)
+  {
+    agents[i] = new RRTAgent();
+    //Magents[i] = new PRMAgent();
+  }
+  agents[1].start=new PVector(-9,9,0);
+  agents[1].goal=new PVector(9,-9,0);
+  
+  //Magents[1].start=new PVector(-9,9,0);
+  //Magents[1].goal=new PVector(9,-9,0);
+ 
+  for(int i=0;i<AgentNum;++i)
+  {
+    agents[i].P.set(agents[i].start.x,agents[i].start.y,agents[i].H/2).mult(mag);
+    agents[i].RRT_Road();
+    agents[i].targetItr=agents[i].Path.iterator();
+    if(agents[i].targetItr.hasNext())
+    {
+      agents[i].NexttarId=agents[i].CurtarId = agents[i].targetItr.next();
+    }
+    
+    
+    //Magents[i].P.set(Magents[i].start.x,Magents[i].start.y,Magents[i].H/2).mult(mag);
+    //Magents[i].PRM_Road();
+  }
+  
+}
+
+
 void update(float dt) 
 {
   if(IsStartAnimation)
@@ -111,59 +136,81 @@ void star(float x, float y, float radius1, float radius2, int npoints)
 }
 void drawRoadmap()//draw PRM Road map
 {
-  int dimension=samples.size();
-  pushMatrix();
-  fill(0,0,255);
-  translate(mag*start.x, mag*start.y,Z);
-  rotate(frameCount / -100.0);
-  star(0, 0, 30, 70, 5); 
-  popMatrix();
-  
-  pushMatrix();
-  fill(0,255,0);
-  translate(mag*goal.x, mag*goal.y, Z);
-  rotate(frameCount / -100.0);
-  star(0, 0, 30, 70, 5); 
-  popMatrix();
-  
-  pushMatrix();
-  for(int i=0;i<dimension;++i)
+  for(int l=0;l<AgentNum;++l)
   {
-    for(int j=0;j<dimension;++j)
+    Vector<PVector> samples= agents[l].samples;
+    PVector start=agents[l].start;
+    PVector goal=agents[l].goal;
+    Float weightmap[][] = agents[l].weightmap;
+    
+    //Vector<PVector> samples= Magents[l].samples;
+    //PVector start=Magents[l].start;
+    //PVector goal=Magents[l].goal;
+    //Float weightmap[][] = Magents[l].weightmap;
+    
+    int dimension=samples.size();
+    pushMatrix();
+    fill(0,0,(255+50*l)%256);
+    translate(mag*start.x, mag*start.y,Z);
+    rotate(frameCount / -100.0);
+    star(0, 0, 30, 70, 5); 
+    popMatrix();
+    
+    pushMatrix();
+    fill(0,(255+50*l)%256,0);
+    translate(mag*goal.x, mag*goal.y, Z);
+    rotate(frameCount / -100.0);
+    star(0, 0, 30, 70, 5); 
+    popMatrix();
+    
+    pushMatrix();
+    for(int i=0;i<dimension;++i)
     {
-      if(weightmap[i][j]<Float.MAX_VALUE) 
+      for(int j=0;j<dimension;++j)
       {
-        PVector P1=samples.get(i);
-        PVector P2=samples.get(j);
-        //show edges
-        stroke(255,255,255);
-        strokeWeight(2);
-        line(P1.x,P1.y,Z,P2.x,P2.y,Z);
+        if(weightmap[i][j]<Float.MAX_VALUE) 
+        {
+          PVector P1=samples.get(i);
+          PVector P2=samples.get(j);
+          //show edges
+          stroke((255+50*l)%256,(255+50*l)%256,(255+50*l)%256);
+          strokeWeight(2);
+          line(P1.x,P1.y,Z,P2.x,P2.y,Z);
+        }
       }
     }
+    popMatrix();
   }
-  popMatrix();
 }
 void drawPath()
 {
-  pushMatrix();
-  strokeWeight(5);
-  for(int k=0;k<Path.size()-1;++k)
+  for(int i=0;i<AgentNum;++i)
   {
-    PVector P1=samples.get(Path.get(k));
-    PVector P2=samples.get(Path.get(k+1));
-    stroke(255,0,255);
-    line(P1.x,P1.y,Z,P2.x,P2.y,Z);
-    // show milestones
+    Vector<PVector> samples= agents[i].samples;
+    ArrayList<Integer>  Path=agents[i].Path;
+    
+    //Vector<PVector> samples= Magents[i].samples;
+    //ArrayList<Integer>  Path=Magents[i].Path;
+    
     pushMatrix();
-    noStroke();
-    fill(186,85,211);
-    translate(P1.x,P1.y,Z);
-    rotate(frameCount / -100.0);
-    star(0, 0, 10, 23, 6); 
+    strokeWeight(5);
+    for(int k=0;k<Path.size()-1;++k)
+    {
+      PVector P1=samples.get(Path.get(k));
+      PVector P2=samples.get(Path.get(k+1));
+      stroke((255+25*i)%256,(0+88*i)%256,(255+34*i)%256);
+      line(P1.x,P1.y,Z,P2.x,P2.y,Z);
+      // show milestones
+      pushMatrix();
+      noStroke();
+      fill((186+25*i)%256,(85+88*i)%256,(211+34*i)%256);
+      translate(P1.x,P1.y,Z);
+      rotate(frameCount / -100.0);
+      star(0, 0, 10, 23, 6); 
+      popMatrix();
+    }
     popMatrix();
   }
-  popMatrix();
 }
 
 void CheckeredFloor() 
@@ -203,27 +250,38 @@ void CheckeredFloor()
 
 void drawcylinder()
 {
-  float R=agentR*mag;
-  float H=agentH*mag;
-  fill(130, 82, 1);//wood brown
-  noStroke();
-  pushMatrix();    
-  translate(agentP.x,agentP.y,agentP.z); 
-  drawCylinder( 30, R , H );
-  popMatrix();
+  for(int i=0;i<AgentNum;++i)
+  {
+    PVector agentP=agents[i].P;
+    float R=agents[i].R*mag;
+    float H=agents[i].H*mag;
+    
+    //PVector agentP=Magents[i].P;
+    //float R=Magents[i].R*mag;
+    //float H=Magents[i].H*mag;
+    fill((130+25*i)%256, (82+55*i)%256, (1+88*i)%256);//wood brown
+    noStroke();
+    pushMatrix();    
+    translate(agentP.x,agentP.y,agentP.z); 
+    drawCylinder( 30, R , H );
+    popMatrix();
+  }
 }
 void drawsphere()
 {
-  float radius=ballR*mag;
-  fill(236, 229, 255);
-  noStroke();
-  pushMatrix();
-  translate(pball.x,pball.y,ballR*mag);
-  sphere(radius);
-  popMatrix();
+  for(int i=0;i<ObsNumber;++i)
+  {
+    float radius=ballR[i]*mag;
+    fill(236, 229, 255);
+    noStroke();
+    pushMatrix();
+    translate(pball[i].x,pball[i].y,ballR[i]*mag);
+    sphere(radius);
+    popMatrix();
+  }
 }
 
-boolean Arrival(PVector destination)
+boolean Arrival(PVector destination,PVector agentP)
 {
   float threshold=.1;
   if(PVector.sub(destination,agentP).mag()<threshold)
@@ -238,36 +296,41 @@ boolean Arrival(PVector destination)
 }
 void UpdateAgent(float dt)
 {
-  PVector CurTarget=samples.get(CurtarId);
-  PVector NextTarget=samples.get(NexttarId);
-  PVector forward=new PVector();
-  if(Arrival(CurTarget))
+  for(int i=0;i<AgentNum;++i)
   {
-    if(targetItr.hasNext())
+    Vector<PVector> samples= agents[i].samples;
+    PVector agentP=agents[i].P;
+    PVector CurTarget=samples.get(agents[i].CurtarId);
+    PVector NextTarget=samples.get(agents[i].NexttarId);
+    PVector forward=new PVector();
+    if(Arrival(CurTarget,agentP))
     {
-      CurtarId = targetItr.next();
-      CurTarget=samples.get(CurtarId);
-      NexttarId = targetItr.next();
-      NextTarget=samples.get(NexttarId);
+      if(agents[i].targetItr.hasNext())
+      {
+        agents[i].CurtarId = agents[i].targetItr.next();
+        CurTarget=samples.get(agents[i].CurtarId);
+        agents[i].NexttarId = agents[i].targetItr.next();
+        NextTarget=samples.get(agents[i].NexttarId);
+      }
+      else
+      {
+        return;
+      }
+    }
+    if(intersection(agentP,NextTarget))
+    {
+      forward=PVector.sub(CurTarget,agentP).normalize();
     }
     else
     {
-      return;
+      forward=PVector.sub(NextTarget,agentP).normalize();
+      agents[i].CurtarId = agents[i].NexttarId;
+      if(agents[i].targetItr.hasNext())
+      {
+        agents[i].NexttarId = agents[i].targetItr.next();
+      }
     }
+    
+    agentP.add(PVector.mult(forward,mag*dt));
   }
-  if(intersection(agentP,NextTarget))
-  {
-    forward=PVector.sub(CurTarget,agentP).normalize();
-  }
-  else
-  {
-    forward=PVector.sub(NextTarget,agentP).normalize();
-    CurtarId = NexttarId;
-    if(targetItr.hasNext())
-    {
-      NexttarId = targetItr.next();
-    }
-  }
-  
-  agentP.add(PVector.mult(forward,mag*dt));
 }
