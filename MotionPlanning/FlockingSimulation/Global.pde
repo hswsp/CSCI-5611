@@ -25,11 +25,17 @@ class Node
     successors =new Vector<Node>();
     this.parent=null;
   }
-
   void Addsuccessor(int index)
   {
     Node successor=new Node(index);
-    successor.parent=this;//new Node(this)
+    successor.parent=this;
+    this.successors.add(successor);
+  }
+  
+  void Addsuccessor(Node node)
+  {
+    Node successor=new Node(node);
+    successor.parent=this;
     this.successors.add(successor);
   }
 }//Node
@@ -48,9 +54,15 @@ class Agent
     R=0.5;
     H=3*R;
     P=new PVector();
+  } 
+}
+public class ReachException extends Exception 
+{
+  public ReachException(String message)
+  {
+    super(message);
   }
 }
-
 /*draw picture*/
 static float mag=50;
 static float Z=.2*mag;

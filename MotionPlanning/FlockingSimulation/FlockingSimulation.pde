@@ -34,8 +34,11 @@ void InitAgents()
     agents[i] = new RRTAgent();
     //Magents[i] = new PRMAgent();
   }
-  agents[1].start=new PVector(-9,9,0);
-  agents[1].goal=new PVector(9,-9,0);
+  if(AgentNum>1)
+  {
+    agents[1].start=new PVector(-9,9,0);
+    agents[1].goal=new PVector(9,-9,0);
+  }
   
   //Magents[1].start=new PVector(-9,9,0);
   //Magents[1].goal=new PVector(9,-9,0);
@@ -43,7 +46,9 @@ void InitAgents()
   for(int i=0;i<AgentNum;++i)
   {
     agents[i].P.set(agents[i].start.x,agents[i].start.y,agents[i].H/2).mult(mag);
-    agents[i].RRT_Road();
+   
+      agents[i].RRT_Road();
+    
     agents[i].targetItr=agents[i].Path.iterator();
     if(agents[i].targetItr.hasNext())
     {
@@ -62,7 +67,7 @@ void update(float dt)
 {
   if(IsStartAnimation)
   {
-    UpdateAgent(dt);
+    UpdateAgentSmooth(dt);
   }
 }
 //Allow the user to push the mass with the left and right keys
@@ -149,13 +154,16 @@ void drawRoadmap()//draw PRM Road map
     //Float weightmap[][] = Magents[l].weightmap;
     
     int dimension=samples.size();
+    //draw start
     pushMatrix();
+    noStroke();
     fill(0,0,(255+50*l)%256);
     translate(mag*start.x, mag*start.y,Z);
     rotate(frameCount / -100.0);
     star(0, 0, 30, 70, 5); 
     popMatrix();
     
+    //draw goal
     pushMatrix();
     fill(0,(255+50*l)%256,0);
     translate(mag*goal.x, mag*goal.y, Z);
@@ -294,7 +302,7 @@ boolean Arrival(PVector destination,PVector agentP)
     return false;
   }
 }
-void UpdateAgent(float dt)
+void UpdateAgentSmooth(float dt)
 {
   for(int i=0;i<AgentNum;++i)
   {
@@ -317,7 +325,7 @@ void UpdateAgent(float dt)
         return;
       }
     }
-    if(intersection(agentP,NextTarget))
+    if(intersection(agentP,NextTarget,new CylinderBall(agents[i].R)))
     {
       forward=PVector.sub(CurTarget,agentP).normalize();
     }
@@ -330,7 +338,7 @@ void UpdateAgent(float dt)
         agents[i].NexttarId = agents[i].targetItr.next();
       }
     }
-    
     agentP.add(PVector.mult(forward,mag*dt));
+
   }
 }

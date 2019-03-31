@@ -52,7 +52,7 @@ class PRMAgent extends Agent
         room[row][col]=1;
         PVector p=new PVector(row-roomw/2,col-roomh/2,0);
         p.mult(mag);
-        if(feasible(p))
+        if(feasible(p, new CylinderBall(R)))
         {
           samples.add(p);
           iter++;
@@ -83,7 +83,7 @@ class PRMAgent extends Agent
          Distance.put(j,weightmap[i][j]);
          PVector p1=samples.get(i);
          PVector p2=samples.get(j);
-         if(i!=j && !intersection(p1,p2))
+         if(i!=j && !intersection(p1,p2,new CylinderBall(R)))
          {
            Distance.put(j,PVector.sub(p2,p1).mag());
          }

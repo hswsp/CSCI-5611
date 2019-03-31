@@ -47,12 +47,12 @@ class RRTAgent extends Agent
     int k=0;
     for(Map.Entry<Node,Float> mapping:list)
     { 
-      Node p1=mapping.getKey();
-      neighbor.add(p1);
       if(++k>K)
       {
         break;
       }
+      Node p1=mapping.getKey();
+      neighbor.add(p1);
     } 
      return neighbor;
   }
@@ -69,7 +69,7 @@ class RRTAgent extends Agent
     {
       Node node = queue.poll();
       PVector p=samples.get(node.Index);
-      if(!intersection(p,curnode))
+      if(!intersection(p,curnode,new CylinderBall(R)))
       {
         float distance=PVector.sub(curnode,p).mag();
         Distance.put(node,distance);
@@ -96,9 +96,10 @@ class RRTAgent extends Agent
       {
         room[row][col]=1;
         p.set(row-roomw/2,col-roomh/2,0).mult(mag);
-        if(feasible(p))
+        if(feasible(p,new CylinderBall(R)))
         {
           samples.add(p);
+          //println("p is ",p);
           return true;
         }
       }
@@ -116,7 +117,10 @@ class RRTAgent extends Agent
     for(Node Xnearst : neighbor)
     {
       PVector Xneighbors= samples.get(Xnearst.Index);
+      //println("new node",Xrand,"'s Xneighbors is :",Xneighbors);
       float cost=Xnearst.g+PVector.sub(Xneighbors,Xrand).mag();
+      //println("Xnearst.g",Xnearst.g);
+      //println("new node",Xrand,"'s Xbest candiate is :",Xneighbors,"its cost is",cost);
       if(cost<Cmin)
       {
         Xbest=Xnearst;
@@ -125,13 +129,18 @@ class RRTAgent extends Agent
     }
     if(Xbest!=null)
     {
+     //println("new node",Xrand,"'s Xbest is :",samples.get(Xbest.Index));
      Xnew.parent=Xbest;
      Xnew.g=Cmin;
-     Xbest.Addsuccessor(Xnew.Index);
+     Xbest.Addsuccessor(Xnew);//.Index
     }
     //rewire Xneighbors
     for(Node Xnear : neighbor)
     {
+      if(Xnear==Xbest)
+      {
+        continue;
+      }
       PVector Xneighbors= samples.get(Xnear.Index);
       float cost=Xnew.g+PVector.sub(Xneighbors,Xrand).mag();
       if(cost<Xnear.g)
@@ -139,15 +148,15 @@ class RRTAgent extends Agent
         Xnear.parent.successors.remove(Xnear);
         Xnear.parent=Xnew;
         Xnew.successors.add(Xnear);
-        Xnew.g=cost;
+        Xnear.g=cost;
       }
     }
      
   }
-  SearchTree RRT()
+  SearchTree RRT() throws ReachException
   {
     SearchTree rrt= new SearchTree();
-    float epsilon=mag;
+    float epsilon=3*mag;
     Random r=new Random();
     int [][]room=new int [roomw][roomh];;
     for(int[] row:room)
@@ -157,38 +166,37 @@ class RRTAgent extends Agent
         p=0;//0 mean not be choosen
       }
     }
-    samples.add(PVector.mult(start,mag));//start is the first one
-    Node Start=new Node(0);
+    PVector s=PVector.mult(start,mag);
+    samples.add(s);//start is the first one
+    Node Start=new Node(samples.indexOf(s));
     rrt.root=Start;
     room[(int)start.x+roomw/2][(int)start.y+roomh/2]=1;
     int Maxiter=500;
     int iter=0;
     while(iter++<Maxiter)
     {
-      //println("iter",iter);
       PVector Xrand=new PVector();
       if(!sample_random_state(r,room,Xrand))
       {
         println("Error!Cannot find new sample!");
         return null;//next sample
       }
-      
       Node Xnew=new Node(samples.indexOf(Xrand));
       rewire(rrt,Xnew);
-      if(PVector.sub(PVector.mult(goal,mag),Xrand).mag()<epsilon||iter>=Maxiter)
+      if(!intersection(PVector.mult(goal,mag),Xrand,new CylinderBall(R)) && PVector.sub(PVector.mult(goal,mag),Xrand).mag()<epsilon )
       {
-        if(!intersection(PVector.mult(goal,mag),Xrand))
-        {
-          Node END=new Node(samples.size());
-          samples.add(PVector.mult(goal,mag));
-          rewire(rrt,END);
-          rrt.goal=END;
-          break;
-        }
-        else
-        {
-          rrt.goal=Xnew;
-        }
+        PVector g=PVector.mult(goal,mag);
+        samples.add(g);
+        Node END=new Node(samples.indexOf(g));
+        rewire(rrt,END);
+        rrt.goal=END;
+        println("Reach Goal!");
+        break;
+      }
+      else if(iter>=Maxiter)
+      {
+        rrt.goal=Xnew;
+        throw new ReachException("RRT Cannot Reach Goal!");
       }
       
     }
@@ -197,36 +205,44 @@ class RRTAgent extends Agent
   
   void RRT_Road()
   {
-    SearchTree rrt=RRT();
-    Node cur=rrt.goal;
-    Stack<Integer> stack = new Stack();
-    Path= new ArrayList<Integer> (samples.size());
-    while(cur!=null)
+    try
     {
-      Integer value=cur.Index;
-      stack.push(value);
-      cur=cur.parent;
-    }
-    //store the index of the path node from start to goal
-    int totalNumber=stack.size();
-    for(int i=0; i<totalNumber; i++) 
-    { 
-      Path.add(stack.pop());
-    }
-    
-    // show map
-    //initial
-    int dimension=samples.size();
-    weightmap =new Float[dimension][];
-    for(int i=0;i<dimension;++i)
-    {
-      weightmap[i]=new Float[dimension];
-      for(int j=0;j<dimension;++j)
+      SearchTree rrt=RRT();
+      Node cur=rrt.goal;
+      Stack<Integer> stack = new Stack();
+      Path= new ArrayList<Integer> (samples.size());
+      while(cur!=null)
       {
-        weightmap[i][j]=Float.MAX_VALUE;  //initial as infinit
+        Integer value=cur.Index;
+        stack.push(value);
+        cur=cur.parent;
       }
+      //store the index of the path node from start to goal
+      int totalNumber=stack.size();
+      for(int i=0; i<totalNumber; i++) 
+      { 
+        Path.add(stack.pop());
+      }
+      
+      // show map
+      //initial
+      int dimension=samples.size();
+      weightmap =new Float[dimension][];
+      for(int i=0;i<dimension;++i)
+      {
+        weightmap[i]=new Float[dimension];
+        for(int j=0;j<dimension;++j)
+        {
+          weightmap[i][j]=Float.MAX_VALUE;  //initial as infinit
+        }
+      }
+      levelTraverse(rrt,weightmap);
+     }
+    catch(ReachException e)
+    {
+       RuntimeException exception = new RuntimeException(e);
+       throw  exception;
     }
-    levelTraverse(rrt,weightmap);
   }
   
   void levelTraverse(SearchTree Tree,Float[][]weightmap)
