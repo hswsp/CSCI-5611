@@ -15,49 +15,50 @@ void InitialObstacles(PVector pball[],float ballR[])
 
 interface CSpace
 {
-  public boolean inCspace(PVector x,PVector pball, float ballR);
+  public boolean inCspace(PVector x,float t,PVector[] pball, float[] ballR);
 }
 class CylinderBall implements CSpace //Cylinder-ball configuration space
 {
   float R;
-  CylinderBall(float CylinderR)
+  CylinderBall(){}
+  CylinderBall(float r)
   {
-    this.R=CylinderR;
+    this.R=r;
   }
-  public boolean inCspace(PVector x,PVector pball, float ballR)
+  public boolean inCspace(PVector x,float t,PVector[] pball, float[] ballR)
   {
-    float SphereR =(R+ballR)*mag;
-    float distance=PVector.sub(x,pball).mag();
-    return distance<SphereR;
+    for(int i=0;i<ObsNumber;++i)
+    {
+      float SphereR =(R+ballR[i])*mag;
+      float distance=PVector.sub(x,pball[i]).mag();
+      if(distance<SphereR)
+      {
+        return false;
+      }
+    }
+    return true;
   }
  };
 
-//boolean CylinderBall(PVector x,PVector pball, float ballR,float agentR)
-//{
-//  float SphereR =(agentR+ballR)*mag;
-//  float distance=PVector.sub(x,pball).mag();
-//  return distance<SphereR;
-//}
-boolean feasible(PVector x,CSpace cspace)
-{//returns true if the vector x is in the feasible space
-  for(int i=0;i<ObsNumber;++i)
+boolean feasible(PVector x,float t,CSpace cspace)
+{
+  //returns true if the vector x is in the feasible space
+  if(cspace.inCspace(x,t,pball,ballR))
   {
-    if(cspace.inCspace(x,pball[i],ballR[i]))
-    {
-      return false;
-    }
-  } 
-  return true;
+    return true;
+  }
+  return false;
 }
 
-boolean intersection(PVector s,PVector g,CSpace cspace)//Is segment sg intersect with configration space
+boolean intersection(PVector s,float t0,PVector g,float t1,CSpace cspace)//Is segment sg intersect with configration space
 {
   float Maxiter=5E3;
   for(int i=0;i<=(int)Maxiter;++i)
   {
     float t=(float)i/Maxiter;
     PVector p=PVector.mult(g,t).add(PVector.mult(s,(1-t)));
-    if(!feasible(p,cspace))
+    float time=t1*t+t0*(1-t);
+    if(!feasible(p,time,cspace))
     {
       return true;
     }

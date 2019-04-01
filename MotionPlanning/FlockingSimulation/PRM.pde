@@ -12,18 +12,7 @@ import java.util.Stack;
 
 class PRMAgent extends Agent
 {
-  Float weightmap[][];
-  Vector<PVector> samples;
-  ArrayList<Integer>  Path;
-  /*animate agent*/
-  Iterator<Integer> targetItr;//point to Path
-  Integer CurtarId;
-  Integer NexttarId;
-  PRMAgent()
-  {
-    super();
-    samples=new Vector(roomw*roomh);
-  }
+
   /*---------------------------------------------PRM-----------------------------------------------------*/
   void PRM()
   {
@@ -52,7 +41,7 @@ class PRMAgent extends Agent
         room[row][col]=1;
         PVector p=new PVector(row-roomw/2,col-roomh/2,0);
         p.mult(mag);
-        if(feasible(p, new CylinderBall(R)))
+        if(feasible(p,0, space))
         {
           samples.add(p);
           iter++;
@@ -83,7 +72,7 @@ class PRMAgent extends Agent
          Distance.put(j,weightmap[i][j]);
          PVector p1=samples.get(i);
          PVector p2=samples.get(j);
-         if(i!=j && !intersection(p1,p2,new CylinderBall(R)))
+         if(i!=j && !intersection(p1,0,p2,0,space))
          {
            Distance.put(j,PVector.sub(p2,p1).mag());
          }
@@ -239,7 +228,7 @@ class PRMAgent extends Agent
     }
   }
   
-  void PRM_Road()
+  void Gen_Road()
   {
     PRM();
     SearchRoad();

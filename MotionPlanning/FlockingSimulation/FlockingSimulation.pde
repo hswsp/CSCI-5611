@@ -27,39 +27,8 @@ void setup()
 }
 void InitAgents()
 {
-  agents=new RRTAgent[AgentNum];
-  //Magents = new PRMAgent[AgentNum];
-  for(int i=0;i<AgentNum;++i)
-  {
-    agents[i] = new RRTAgent();
-    //Magents[i] = new PRMAgent();
-  }
-  if(AgentNum>1)
-  {
-    agents[1].start=new PVector(-9,9,0);
-    agents[1].goal=new PVector(9,-9,0);
-  }
-  
-  //Magents[1].start=new PVector(-9,9,0);
-  //Magents[1].goal=new PVector(9,-9,0);
- 
-  for(int i=0;i<AgentNum;++i)
-  {
-    agents[i].P.set(agents[i].start.x,agents[i].start.y,agents[i].H/2).mult(mag);
-   
-      agents[i].RRT_Road();
-    
-    agents[i].targetItr=agents[i].Path.iterator();
-    if(agents[i].targetItr.hasNext())
-    {
-      agents[i].NexttarId=agents[i].CurtarId = agents[i].targetItr.next();
-    }
-    
-    
-    //Magents[i].P.set(Magents[i].start.x,Magents[i].start.y,Magents[i].H/2).mult(mag);
-    //Magents[i].PRM_Road();
-  }
-  
+  multiAgents=new MultiAgents("RRT",2);
+  multiAgents.init();
 }
 
 
@@ -67,7 +36,8 @@ void update(float dt)
 {
   if(IsStartAnimation)
   {
-    UpdateAgentSmooth(dt);
+    //UpdateAgentSmooth(dt);
+    UpdateAgentLinearly(dt);
   }
 }
 //Allow the user to push the mass with the left and right keys
@@ -141,18 +111,12 @@ void star(float x, float y, float radius1, float radius2, int npoints)
 }
 void drawRoadmap()//draw PRM Road map
 {
-  for(int l=0;l<AgentNum;++l)
+  for(int l=0;l<multiAgents.AgentNum;++l)
   {
-    Vector<PVector> samples= agents[l].samples;
-    PVector start=agents[l].start;
-    PVector goal=agents[l].goal;
-    Float weightmap[][] = agents[l].weightmap;
-    
-    //Vector<PVector> samples= Magents[l].samples;
-    //PVector start=Magents[l].start;
-    //PVector goal=Magents[l].goal;
-    //Float weightmap[][] = Magents[l].weightmap;
-    
+    Vector<PVector> samples= multiAgents.agents[l].samples;
+    PVector start=multiAgents.agents[l].start;
+    PVector goal=multiAgents.agents[l].goal;
+    Float weightmap[][] = multiAgents.agents[l].weightmap;
     int dimension=samples.size();
     //draw start
     pushMatrix();
@@ -192,14 +156,10 @@ void drawRoadmap()//draw PRM Road map
 }
 void drawPath()
 {
-  for(int i=0;i<AgentNum;++i)
+  for(int i=0;i<multiAgents.AgentNum;++i)
   {
-    Vector<PVector> samples= agents[i].samples;
-    ArrayList<Integer>  Path=agents[i].Path;
-    
-    //Vector<PVector> samples= Magents[i].samples;
-    //ArrayList<Integer>  Path=Magents[i].Path;
-    
+    Vector<PVector> samples= multiAgents.agents[i].samples;
+    ArrayList<Integer>  Path=multiAgents.agents[i].Path;
     pushMatrix();
     strokeWeight(5);
     for(int k=0;k<Path.size()-1;++k)
@@ -258,15 +218,11 @@ void CheckeredFloor()
 
 void drawcylinder()
 {
-  for(int i=0;i<AgentNum;++i)
+  for(int i=0;i<multiAgents.AgentNum;++i)
   {
-    PVector agentP=agents[i].P;
-    float R=agents[i].R*mag;
-    float H=agents[i].H*mag;
-    
-    //PVector agentP=Magents[i].P;
-    //float R=Magents[i].R*mag;
-    //float H=Magents[i].H*mag;
+    PVector agentP=multiAgents.agents[i].P;
+    float R=multiAgents.agents[i].R*mag;
+    float H=multiAgents.agents[i].H*mag;
     fill((130+25*i)%256, (82+55*i)%256, (1+88*i)%256);//wood brown
     noStroke();
     pushMatrix();    
@@ -291,7 +247,7 @@ void drawsphere()
 
 boolean Arrival(PVector destination,PVector agentP)
 {
-  float threshold=.1;
+  float threshold=.1*mag;
   if(PVector.sub(destination,agentP).mag()<threshold)
   {
     println("arrival!");
@@ -302,43 +258,66 @@ boolean Arrival(PVector destination,PVector agentP)
     return false;
   }
 }
-void UpdateAgentSmooth(float dt)
+void UpdateAgentLinearly(float dt)
 {
-  for(int i=0;i<AgentNum;++i)
+  for(int i=0;i<multiAgents.AgentNum;++i)
   {
-    Vector<PVector> samples= agents[i].samples;
-    PVector agentP=agents[i].P;
-    PVector CurTarget=samples.get(agents[i].CurtarId);
-    PVector NextTarget=samples.get(agents[i].NexttarId);
+    Vector<PVector> samples= multiAgents.agents[i].samples;
+    PVector agentP=multiAgents.agents[i].P;
+    PVector CurTarget=samples.get(multiAgents.agents[i].CurtarId);
     PVector forward=new PVector();
     if(Arrival(CurTarget,agentP))
     {
-      if(agents[i].targetItr.hasNext())
+      if(multiAgents.agents[i].targetItr.hasNext())
       {
-        agents[i].CurtarId = agents[i].targetItr.next();
-        CurTarget=samples.get(agents[i].CurtarId);
-        agents[i].NexttarId = agents[i].targetItr.next();
-        NextTarget=samples.get(agents[i].NexttarId);
+        multiAgents.agents[i].CurtarId = multiAgents.agents[i].targetItr.next();
+        CurTarget=samples.get(multiAgents.agents[i].CurtarId);
       }
       else
       {
-        return;
+        continue;
       }
     }
-    if(intersection(agentP,NextTarget,new CylinderBall(agents[i].R)))
+    forward=PVector.sub(CurTarget,agentP).normalize();
+    agentP.add(PVector.mult(forward,multiAgents.agents[i].Vel*dt));
+  }
+}
+void UpdateAgentSmooth(float dt)
+{
+  for(int i=0;i<multiAgents.AgentNum;++i)
+  {
+    Vector<PVector> samples= multiAgents.agents[i].samples;
+    PVector agentP=multiAgents.agents[i].P;
+    PVector CurTarget=samples.get(multiAgents.agents[i].CurtarId);
+    PVector NextTarget=samples.get(multiAgents.agents[i].NexttarId);
+    PVector forward=new PVector();
+    if(Arrival(CurTarget,agentP))
+    {
+      if(multiAgents.agents[i].targetItr.hasNext())
+      {
+        multiAgents.agents[i].CurtarId = multiAgents.agents[i].targetItr.next();
+        CurTarget=samples.get(multiAgents.agents[i].CurtarId);
+        multiAgents.agents[i].NexttarId = multiAgents.agents[i].targetItr.next();
+        NextTarget=samples.get(multiAgents.agents[i].NexttarId);
+      }
+      else
+      {
+        continue;
+      }
+    }
+    if(intersection(agentP,0,NextTarget,0,multiAgents.agents[i].space))
     {
       forward=PVector.sub(CurTarget,agentP).normalize();
     }
     else
     {
       forward=PVector.sub(NextTarget,agentP).normalize();
-      agents[i].CurtarId = agents[i].NexttarId;
-      if(agents[i].targetItr.hasNext())
+      multiAgents.agents[i].CurtarId = multiAgents.agents[i].NexttarId;
+      if(multiAgents.agents[i].targetItr.hasNext())
       {
-        agents[i].NexttarId = agents[i].targetItr.next();
+        multiAgents.agents[i].NexttarId = multiAgents.agents[i].targetItr.next();
       }
     }
-    agentP.add(PVector.mult(forward,mag*dt));
-
+    agentP.add(PVector.mult(forward,multiAgents.agents[i].Vel*dt));
   }
 }

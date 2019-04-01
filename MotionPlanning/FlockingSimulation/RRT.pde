@@ -9,20 +9,6 @@ class SearchTree
 }
 class RRTAgent extends Agent
 {
-  /*road map*/
-  Float weightmap[][];
-  Vector<PVector> samples;
-  /*Search*/
-  ArrayList<Integer>  Path;
-  /*animate agent*/
-  Iterator<Integer> targetItr;//point to Path
-  Integer CurtarId;
-  Integer NexttarId;
-  RRTAgent()
-  {
-    super();
-    samples=new Vector(roomw*roomh);
-  }
   /*---------------------------------------------RRT-----------------------------------------------------*/
   // get collision free neighbors
   ArrayList<Node> get_nearby_vertices(PVector curnode,SearchTree Tree)
@@ -69,7 +55,7 @@ class RRTAgent extends Agent
     {
       Node node = queue.poll();
       PVector p=samples.get(node.Index);
-      if(!intersection(p,curnode,new CylinderBall(R)))
+      if(!intersection(p,0,curnode,0,space))
       {
         float distance=PVector.sub(curnode,p).mag();
         Distance.put(node,distance);
@@ -96,10 +82,9 @@ class RRTAgent extends Agent
       {
         room[row][col]=1;
         p.set(row-roomw/2,col-roomh/2,0).mult(mag);
-        if(feasible(p,new CylinderBall(R)))
+        if(feasible(p,0,space))
         {
           samples.add(p);
-          //println("p is ",p);
           return true;
         }
       }
@@ -107,20 +92,21 @@ class RRTAgent extends Agent
     return false;
   }
   
-  void rewire(SearchTree rrt,Node Xnew)
+  boolean rewire(SearchTree rrt,Node Xnew)
   {
     //rewire Xnew
     PVector Xrand=samples.get(Xnew.Index);
     ArrayList<Node> neighbor=get_nearby_vertices(Xrand,rrt);
     Node Xbest=null; //best fit neighbor
     float Cmin=Float.MAX_VALUE; // minimun cost
+    if(neighbor.isEmpty())
+    {
+      return false;
+    }
     for(Node Xnearst : neighbor)
     {
       PVector Xneighbors= samples.get(Xnearst.Index);
-      //println("new node",Xrand,"'s Xneighbors is :",Xneighbors);
       float cost=Xnearst.g+PVector.sub(Xneighbors,Xrand).mag();
-      //println("Xnearst.g",Xnearst.g);
-      //println("new node",Xrand,"'s Xbest candiate is :",Xneighbors,"its cost is",cost);
       if(cost<Cmin)
       {
         Xbest=Xnearst;
@@ -129,10 +115,9 @@ class RRTAgent extends Agent
     }
     if(Xbest!=null)
     {
-     //println("new node",Xrand,"'s Xbest is :",samples.get(Xbest.Index));
      Xnew.parent=Xbest;
      Xnew.g=Cmin;
-     Xbest.Addsuccessor(Xnew);//.Index
+     Xbest.Addsuccessor(Xnew);
     }
     //rewire Xneighbors
     for(Node Xnear : neighbor)
@@ -151,7 +136,7 @@ class RRTAgent extends Agent
         Xnear.g=cost;
       }
     }
-     
+   return true;  
   }
   SearchTree RRT() throws ReachException
   {
@@ -179,11 +164,18 @@ class RRTAgent extends Agent
       if(!sample_random_state(r,room,Xrand))
       {
         println("Error!Cannot find new sample!");
-        return null;//next sample
+        continue;//next sample
       }
       Node Xnew=new Node(samples.indexOf(Xrand));
-      rewire(rrt,Xnew);
-      if(!intersection(PVector.mult(goal,mag),Xrand,new CylinderBall(R)) && PVector.sub(PVector.mult(goal,mag),Xrand).mag()<epsilon )
+      if(!rewire(rrt,Xnew))
+      {
+        continue;
+      }
+      if(Xrand==PVector.mult(goal,mag))
+      {
+        continue;
+      }
+      else if(!intersection(PVector.mult(goal,mag),0,Xrand,0,space) && PVector.sub(PVector.mult(goal,mag),Xrand).mag()<epsilon )
       {
         PVector g=PVector.mult(goal,mag);
         samples.add(g);
@@ -203,12 +195,19 @@ class RRTAgent extends Agent
     return rrt;
   }
   
-  void RRT_Road()
+  void Gen_Road()
   {
+    SearchTree rrt;
     try
     {
-      SearchTree rrt=RRT();
-      Node cur=rrt.goal;
+      rrt=RRT();
+     }
+    catch(ReachException e)
+    {
+       RuntimeException exception = new RuntimeException(e);
+       throw  exception;
+    }
+     Node cur=rrt.goal;
       Stack<Integer> stack = new Stack();
       Path= new ArrayList<Integer> (samples.size());
       while(cur!=null)
@@ -237,12 +236,6 @@ class RRTAgent extends Agent
         }
       }
       levelTraverse(rrt,weightmap);
-     }
-    catch(ReachException e)
-    {
-       RuntimeException exception = new RuntimeException(e);
-       throw  exception;
-    }
   }
   
   void levelTraverse(SearchTree Tree,Float[][]weightmap)
