@@ -42,6 +42,7 @@ abstract class Agent
   float R;
   float H;
   PVector P;
+  PVector forward;
   PVector goal;
   PVector start;
   float Vel;
@@ -60,9 +61,10 @@ abstract class Agent
   {
     goal=new PVector(9,9,0);
     start = new PVector(-9,-9,0);
+    forward = new PVector();
     R=0.5;
     H=3*R;
-    P=new PVector();
+    P=new PVector(start.x,start.y,start.z);
     Vel=3*mag;
     samples=new Vector(roomw*roomh);
   } 

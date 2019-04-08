@@ -1,6 +1,10 @@
 import queasycam.*;
 import java.awt.event.KeyEvent;
 import java.lang.reflect.Method;
+import org.apache.commons.math3.optim.PointValuePair;
+import org.apache.commons.math3.optim.InitialGuess;
+import org.apache.commons.math3.optim.nonlinear.scalar.ObjectiveFunction;
+import com.manyangled.gibbous.optim.convex.*;
 QueasyCam cam;
 
 void setup() 
@@ -23,7 +27,35 @@ void setup()
   perspective(PI/3, (float)width/height, 0.01, 10000);
   InitialObstacles(pball,ballR);
   InitAgents();
- //<>//
+  //QP sol=new QP();
+  //double [][] A=new double[][] { { -1.0, 0.0 },{0.0,-1.0} }; // constraint x > 1,y>1
+  //double []b= new double[] { -1.0,-1.0};
+  //sol.InitQ(new double[][] { { 2.0, 0.0 }, { 0.0, 2.0 } },new double[] { -2.0, -2.0 },0.0);
+  //sol.InitLI(A,b);
+  //sol.solver(new double[] { 2.0, 2.0 } );
+  //println("xmin",sol.xmin[0],sol.xmin[1]);
+  //QuadraticFunction q = new QuadraticFunction(
+  //  new double[][] { { 1.0, 0.0 }, { 0.0, 1.0 } },
+  //  new double[] { 0.0, 0.0 },
+  //  0.0);
+  //// optimize function q with an inequality constraint and an equality constraint,
+  //// using the barrier method
+  //BarrierOptimizer barrier = new BarrierOptimizer();
+  //PointValuePair pvp = barrier.optimize(
+  //    new ObjectiveFunction(q),
+  //    new LinearInequalityConstraint(
+  //        new double[][] { { -1.0, 0.0 },{0.0,-1.0} }, // constraint x > 1,y>1
+  //        new double[] { -1.0,-1.0}),
+  //    //new LinearEqualityConstraint(
+  //        //new double[][] { { 1.0, 0.0 } },  // constraint y = 1,
+  //        //new double[] { 1.0 }),
+  //        null,
+  //    new InitialGuess(new double[] { 2.0, 2.0 }));
+  
+  //double[] xmin = pvp.getFirst();  // { 1.0, 1.0 }
+  //double vmin = pvp.getSecond();   // 1.0
+  //println("xmin",sol.xmin[0],sol.xmin[1]);
+
 }
 void InitAgents()
 {
@@ -81,7 +113,7 @@ void mouseDragged()
 
 void draw() 
 {
-  float dt=0.01;
+  //float dt=0.01;
   background(255,255,255);
   update(dt);
   //ambientLight(102, 102, 102);
@@ -226,10 +258,18 @@ void drawcylinder()
     fill((130+25*i)%256, (82+55*i)%256, (1+88*i)%256);//wood brown
     noStroke();
     pushMatrix();    
-    translate(agentP.x,agentP.y,agentP.z); 
+    translate(agentP.x,agentP.y,multiAgents.agents[i].H/2*mag); //agentP.z
     drawCylinder( 30, R , H );
     popMatrix();
   }
+  //if(bestline!=null)
+  //{
+  //  stroke(126);
+  //  strokeWeight(5);
+  //  line(multiAgents.agents[1].P.x, multiAgents.agents[1].P.y, multiAgents.agents[1].H/2*mag,
+  //  multiAgents.agents[1].P.x+5*mag*bestline.direction.x, multiAgents.agents[1].P.y+5*mag*bestline.direction.y, 
+  //  multiAgents.agents[1].H/2*mag+5*mag*bestline.direction.z);
+  //}
 }
 void drawsphere()
 {
@@ -249,8 +289,7 @@ boolean Arrival(PVector destination,PVector agentP)
 {
   float threshold=.1*mag;
   if(PVector.sub(destination,agentP).mag()<threshold)
-  {
-    println("arrival!");
+  { 
     return true;
   }
   else
@@ -258,8 +297,10 @@ boolean Arrival(PVector destination,PVector agentP)
     return false;
   }
 }
+
 void UpdateAgentLinearly(float dt)
 {
+  RVO Local=new RVO();
   for(int i=0;i<multiAgents.AgentNum;++i)
   {
     Vector<PVector> samples= multiAgents.agents[i].samples;
@@ -279,9 +320,25 @@ void UpdateAgentLinearly(float dt)
       }
     }
     forward=PVector.sub(CurTarget,agentP).normalize();
-    agentP.add(PVector.mult(forward,multiAgents.agents[i].Vel*dt));
+    forward.z=0;
+    multiAgents.agents[i].forward.set(PVector.mult(forward,multiAgents.agents[i].Vel)); 
+  }
+  ArrayList<PVector> Vel=Local.LocalIntersection(multiAgents.agents,multiAgents.AgentNum);
+  for(int i=0;i<multiAgents.AgentNum;++i)
+  {
+    if(!Arrival(multiAgents.agents[i].P,PVector.mult(multiAgents.agents[i].goal,mag)))
+    {
+      if(Vel!=null){
+      multiAgents.agents[i].P.add(PVector.mult(Vel.get(i),dt));
+      }
+      else{
+        multiAgents.agents[i].P.add(PVector.mult( multiAgents.agents[i].forward,dt));
+      }
+    }
   }
 }
+
+/*Implement  path  smoothing*/
 void UpdateAgentSmooth(float dt)
 {
   for(int i=0;i<multiAgents.AgentNum;++i)

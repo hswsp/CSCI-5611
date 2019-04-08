@@ -22,3 +22,8 @@ static int K=5;//K-NN
 
 /*keyboard Interaction*/
 static boolean IsStartAnimation=false;
+
+/*animation*/
+float dt=0.01;
+
+//Line bestline;

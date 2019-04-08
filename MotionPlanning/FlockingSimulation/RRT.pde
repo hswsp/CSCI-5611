@@ -175,7 +175,7 @@ class RRTAgent extends Agent
       {
         continue;
       }
-      else if(!intersection(PVector.mult(goal,mag),0,Xrand,0,space) && PVector.sub(PVector.mult(goal,mag),Xrand).mag()<epsilon )
+      else if((iter%5)==0&&(!intersection(PVector.mult(goal,mag),0,Xrand,0,space)))//&& PVector.sub(PVector.mult(goal,mag),Xrand).mag()<epsilon 
       {
         PVector g=PVector.mult(goal,mag);
         samples.add(g);
@@ -207,35 +207,35 @@ class RRTAgent extends Agent
        RuntimeException exception = new RuntimeException(e);
        throw  exception;
     }
-     Node cur=rrt.goal;
-      Stack<Integer> stack = new Stack();
-      Path= new ArrayList<Integer> (samples.size());
-      while(cur!=null)
+    Node cur=rrt.goal;
+    Stack<Integer> stack = new Stack();
+    Path= new ArrayList<Integer> (samples.size());
+    while(cur!=null)
+    {
+      Integer value=cur.Index;
+      stack.push(value);
+      cur=cur.parent;
+    }
+    //store the index of the path node from start to goal
+    int totalNumber=stack.size();
+    for(int i=0; i<totalNumber; i++) 
+    { 
+      Path.add(stack.pop());
+    }
+    
+    // show map
+    //initial
+    int dimension=samples.size();
+    weightmap =new Float[dimension][];
+    for(int i=0;i<dimension;++i)
+    {
+      weightmap[i]=new Float[dimension];
+      for(int j=0;j<dimension;++j)
       {
-        Integer value=cur.Index;
-        stack.push(value);
-        cur=cur.parent;
+        weightmap[i][j]=Float.MAX_VALUE;  //initial as infinit
       }
-      //store the index of the path node from start to goal
-      int totalNumber=stack.size();
-      for(int i=0; i<totalNumber; i++) 
-      { 
-        Path.add(stack.pop());
-      }
-      
-      // show map
-      //initial
-      int dimension=samples.size();
-      weightmap =new Float[dimension][];
-      for(int i=0;i<dimension;++i)
-      {
-        weightmap[i]=new Float[dimension];
-        for(int j=0;j<dimension;++j)
-        {
-          weightmap[i][j]=Float.MAX_VALUE;  //initial as infinit
-        }
-      }
-      levelTraverse(rrt,weightmap);
+    }
+    levelTraverse(rrt,weightmap);
   }
   
   void levelTraverse(SearchTree Tree,Float[][]weightmap)
