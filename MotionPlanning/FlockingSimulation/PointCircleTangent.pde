@@ -28,7 +28,7 @@ public class PointCircleTangent {
     float dist = sqrt(dx*dx+dy*dy);
     
     // Point is strictly contained within the circle
-    if (dist <= radius) return points;
+    if (dist < radius) return points;
 
     float angle, angle1, angle2;
     

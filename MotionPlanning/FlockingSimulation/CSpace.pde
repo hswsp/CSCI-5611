@@ -3,7 +3,7 @@ void InitialObstacles(PVector pball[],float ballR[])
  {
    for(int i=0;i<ObsNumber;++i)
    {
-     ballR[i]=2;
+     ballR[i]=1;
      pball[i]=new PVector(0,0,0).mult(mag);
    }
    pball[0]=new PVector(0,0,0).mult(mag);

@@ -59,7 +59,7 @@ void setup()
 }
 void InitAgents()
 {
-  multiAgents=new MultiAgents("RRT",2);
+  multiAgents=new MultiAgents("RRT",4);
   multiAgents.init();
 }
 
@@ -322,20 +322,28 @@ void UpdateAgentLinearly(float dt)
     forward=PVector.sub(CurTarget,agentP).normalize();
     forward.z=0;
     multiAgents.agents[i].forward.set(PVector.mult(forward,multiAgents.agents[i].Vel)); 
+    multiAgents.boids.get(i).velocity=forward;
   }
+  
   ArrayList<PVector> Vel=Local.LocalIntersection(multiAgents.agents,multiAgents.AgentNum);
   for(int i=0;i<multiAgents.AgentNum;++i)
   {
     if(!Arrival(multiAgents.agents[i].P,PVector.mult(multiAgents.agents[i].goal,mag)))
     {
+      /*************************RVO******************************/
       if(Vel!=null){
       multiAgents.agents[i].P.add(PVector.mult(Vel.get(i),dt));
       }
       else{
         multiAgents.agents[i].P.add(PVector.mult( multiAgents.agents[i].forward,dt));
       }
+      /*************************Boids*******************************/
+      //multiAgents.boids.get(i).flock(multiAgents.boids);
+      //multiAgents.boids.get(i).update();
     }
+    
   }
+  
 }
 
 /*Implement  path  smoothing*/

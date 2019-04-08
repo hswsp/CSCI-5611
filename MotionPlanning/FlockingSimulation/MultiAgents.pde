@@ -4,11 +4,13 @@ class MultiAgents
   Agent[] agents;
   ArrayList<Float> []milestones;
   ArrayList<PVector> AgentsP;
+  ArrayList<Boid> boids; // treat it as boids
   MultiAgents(String type,int num)
   {
     AgentNum=num;
     milestones =new ArrayList[AgentNum];
     AgentsP = new ArrayList<PVector>(AgentNum);
+    boids = new ArrayList<Boid>(AgentNum);
     if(type=="PRM")
     {
       this.agents=new PRMAgent[AgentNum];
@@ -27,15 +29,21 @@ class MultiAgents
       {
         this.agents[i] = new RRTAgent();
       }
-      //milestones[i]=new ArrayList<Float>();
+      this.agents[i].start=new PVector(pow(-1,(i/2)%2+1)*9,pow(-1,((i+1)/2)%2+1)*9,0);
+      this.agents[i].goal=new PVector(pow(-1,(i/2)%2)*9,pow(-1,((i+1)/2)%2)*9,0);
+      boids.add(new Boid(agents[i]));
     }
-    if(AgentNum>1)
+    if(AgentNum>1) //test
     {
-      //this.agents[0].goal=new PVector(-9,9,0);
-      
+      this.agents[0].goal=new PVector(-7,9,0); 
       this.agents[1].start=new PVector(-9,9,0);
-      this.agents[1].goal=new PVector(-9,-9,0);//test (-9,-9,0)
+      this.agents[1].goal=new PVector(-7,-9,0);
+      this.agents[2].start=new PVector(-7,-9,0);
+      this.agents[2].goal=new PVector(-9,9,0);
+      this.agents[3].start=new PVector(-7,9,0);
+      this.agents[3].goal=new PVector(-9,-9,0);
     }
+    
     
   }
   private ArrayList<Float> genmilestonetime(Agent agent)
@@ -125,6 +133,7 @@ class MultiAgents
       return true;
     }
    };
+   
   void init()
   {
     for(int i=0;i<AgentNum;++i)

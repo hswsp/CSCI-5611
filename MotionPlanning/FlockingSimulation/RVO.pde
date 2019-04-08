@@ -17,14 +17,94 @@ class RVO
     }
      return false;
   }
-  private Line VerticalLine(Agent A,Agent Obstacle)//
+  private Line VerticalLine(PVector SO, float ObstacleR, float AR, float AVel)//Agent A,Agent Obstacle
   {
-    //set S to origin
-    PVector O=Obstacle.P;
-    PVector S=A.P;
-    PVector PinLine=PVector.add(O,PVector.mult(PVector.sub(S,O).normalize(),(Obstacle.R+A.R)*mag+A.Vel*dt*3));
-    Line line=new Line(O,PVector.sub(S,O).normalize());
-    return line.Perpendicular(PVector.sub(PinLine,S));
+    /*set S to origin
+    SO=S-O
+    */
+    PVector PinLine=PVector.add(SO,PVector.mult(SO.normalize(),-((ObstacleR+AR)*mag+AVel*dt*3)));
+    Line line=new Line(SO,PVector.mult(SO,-1).normalize());
+    return line.Perpendicular(PinLine);
+  }
+  private PVector Findclosed(PVector PB, PVector VA, PVector VB, float Ra, float Rb,ArrayList<ArrayList<Double>> A, ArrayList<Double>b)
+  {
+    //PVector Vop=PVector.sub(VA,VB);
+    PointCircleTangent CircleT= new PointCircleTangent();
+    PVector minIntersaction=null;
+    Line RVOLine=new Line();
+    float minLen=Float.MAX_VALUE;
+    PVector Reciprocal=PVector.add(PVector.mult(VA,0.5-2E-2),PVector.mult(VB,0.5+2E-2));
+    ArrayList<PVector> points=CircleT.pointCircleTangentPoints(PB,(Ra+Rb)*mag,new PVector(0,0,0));
+    Line VAtoTan[] = new Line[2];
+    for(int i=0;i<points.size();++i)// add tangent
+    {
+      PVector dir=points.get(i).normalize();// tangent line orientation
+      if(dir.mag()==0)
+      {
+        dir.set(1,0,0);
+      }
+      Line tangent=new Line(Reciprocal,dir); // apex lies at (Va+Vb)/2
+      //Line tangent=new Line(new PVector(0,0,0),dir);
+      VAtoTan[i] = new Line(VA,new PVector(-tangent.direction.y,tangent.direction.x,0));  
+      //VAtoTan[i] = new Line(Vop,new PVector(-tangent.direction.y,tangent.direction.x,0));  
+    }
+    if(points.size()==2&&PVector.dot(VAtoTan[0].direction,VAtoTan[1].direction)>0) // outside cons
+    {
+      return minIntersaction;
+    }
+    println("points.size()",points.size());
+    for(int i=0;i<points.size();++i)
+    {
+      PVector dir=points.get(i).normalize();// tangent line orientation
+      if(dir.mag()==0)
+      {
+        dir.set(1,0,0);
+      }
+      Line tangent =new Line(Reciprocal,dir);
+      //Line tangent=new Line(new PVector(0,0,0),dir);
+      PVector Intersection=tangent.Intersection(tangent,VAtoTan[i]);
+      //PVector Intersection=tangent.Intersection(tangent,VAtoTan[i]);
+      float distance=PVector.dist(Intersection,VA);
+      if(distance<minLen)
+      {
+        minLen=distance;
+        RVOLine=tangent;
+        minIntersaction=Intersection;
+      }
+    }
+    // add verticle constraints
+    Line Vline=VerticalLine(PB,Rb, Ra, VA.mag()); 
+    Vline.point.add(Reciprocal);
+    Line VAtoVl = new Line(VA,new PVector(-Vline.direction.y,Vline.direction.x,0));
+    PVector Intersection=Vline.Intersection(Vline,VAtoVl);
+    float distance=PVector.dist(Intersection,VA);
+    if(distance<minLen)
+    {
+      minLen=distance;
+      RVOLine=Vline;
+      minIntersaction=Intersection;
+    }
+    //add the optimal line to LP 
+    ArrayList<Double> lines = new  ArrayList<Double>();
+    lines.add((double)RVOLine.direction.y);
+    lines.add(-1*((double)RVOLine.direction.x));
+    double btemp=(double)RVOLine.direction.y*RVOLine.point.x-(double)RVOLine.direction.x*RVOLine.point.y;
+    println("minIntersaction",minIntersaction);
+    //println("Vop",Vop);
+    //PVector u=PVector.sub(minIntersaction,Vop);
+    //double btemp=(double)RVOLine.direction.y*(VA.x+u.x/2)-(double)RVOLine.direction.x*(VA.y+u.y/2);
+    // lines.get(0)*PB.x+lines.get(1)*PB.y-btemp<0
+    if(lines.get(0)*(PB.x+Reciprocal.x)+lines.get(1)*(PB.y+Reciprocal.y)-btemp<0) // the center of b should be outside the constraints
+    {
+      for(int l=0;l<lines.size();++l)
+      {
+         lines.set(l,-1*lines.get(l));
+      }
+      btemp=-btemp;
+    }
+    A.add(lines);// store the outer normal of the line
+    b.add(btemp);
+    return minIntersaction;
   }
   private PVector ObstacleCones(Agent[] agents,int ID,int num, ArrayList<ArrayList<Double>> A, ArrayList<Double>b) // one agnet VS all
   {
@@ -38,73 +118,8 @@ class RVO
     {
       if(j==ID)
        continue;
-      Line RVOLine=new Line();
-      float minLen=Float.MAX_VALUE;
-      PVector PB=PVector.sub(agents[j].P,PA);//Velocity obstacle center
-      PVector Reciprocal=PVector.mult(PVector.add(VA,agents[j].forward),0.5);
-      ArrayList<PVector> points=CircleT.pointCircleTangentPoints(PB,(agents[j].R+R)*mag,new PVector(0,0,0));
-      Line VAtoTan[] = new Line[2];
-      for(int i=0;i<points.size();++i)// add tangent
-      {
-        PVector dir=points.get(i).normalize();// tangent line orientation
-        if(dir.mag()==0)
-        {
-          dir.set(1,0,0);
-        }
-        Line tangent=new Line(Reciprocal,dir); // apex lies at (Va+Vb)/2     
-        VAtoTan[i] = new Line(VA,new PVector(-tangent.direction.y,tangent.direction.x,0)); 
-       
-      }
-      if(PVector.dot(VAtoTan[0].direction,VAtoTan[1].direction)>0) // outside cons
-      {
-        continue;
-      }
-      for(int i=0;i<points.size();++i)
-      {
-        PVector dir=points.get(i).normalize();// tangent line orientation
-        if(dir.mag()==0)
-        {
-          dir.set(1,0,0);
-        }
-        Line tangent =new Line(Reciprocal,dir);
-        PVector Intersection=tangent.Intersection(tangent,VAtoTan[i]);
-        float distance=PVector.sub(Intersection,VA).mag();
-        if(distance<minLen)
-        {
-          minLen=distance;
-          RVOLine=tangent;
-          minIntersaction=Intersection;
-        }
-      }
-      //// add verticle constraints
-      //Line Vline=VerticalLine(agents[ID],agents[j]); 
-      //Vline.point.add(Reciprocal);
-      //Line VAtoTan = new Line(VA,new PVector(-Vline.direction.y,Vline.direction.x,0));
-      //PVector Intersection=Vline.Intersection(Vline,VAtoTan);
-      //float distance=PVector.sub(Intersection,VA).mag();
-      //if(distance<minLen)
-      //{
-      //  minLen=distance;
-      //  RVOLine=Vline;
-      //  minIntersaction=Intersection;
-      //}
-      //add the optimal line to LP 
-      ArrayList<Double> lines = new  ArrayList<Double>();
-      lines.add((double)RVOLine.direction.y);
-      lines.add(-1*((double)RVOLine.direction.x));
-      double btemp=(double)RVOLine.direction.y*RVOLine.point.x-(double)RVOLine.direction.x*RVOLine.point.y;
-      if(lines.get(0)*(PB.x+Reciprocal.x)+lines.get(1)*(PB.y+Reciprocal.y)-btemp<0) // the center of b should be outside the constraints
-      {
-        for(int l=0;l<lines.size();++l)
-        {
-           lines.set(l,-1*lines.get(l));
-        }
-        btemp=-btemp;
-      }
-      A.add(lines);// store the outer normal of the line
-      b.add(btemp);
-    }
-      
+      minIntersaction=Findclosed(PVector.sub(agents[j].P,PA), VA, agents[j].forward, R, agents[j].R,A,b);
+    }     
     /*check static obstacle*/
     for(int j=0;j<ObsNumber;++j)
     {
@@ -124,7 +139,7 @@ class RVO
         Line tangent =new Line(Reciprocal,dir);   
         VAtoTan[i] = new Line(VA,new PVector(-tangent.direction.y,tangent.direction.x,0)); 
       }
-      if(PVector.dot(VAtoTan[0].direction,VAtoTan[1].direction)>0) // outside cons
+      if(points.size()==2&&PVector.dot(VAtoTan[0].direction,VAtoTan[1].direction)>0) // outside cons
       {
         continue;
       }
@@ -196,7 +211,7 @@ class RVO
        for(int j=0;j<At.get(k).size();++j)
          {
            A[k][j]=At.get(k).get(j);
-           InitialG[j]-=mag*A[k][j];
+           InitialG[j]-=mag*A[k][(j+1)%2];
          }
        b[k]=bt.get(k);
       }
