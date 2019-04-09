@@ -40,7 +40,6 @@ public class PointCircleTangent {
 
     angle = angle1 + angle2;
     PVector p2 = new PVector(cx + radius * -sin(angle), cy + radius * cos(angle),0);
-
     // Points are sufficiently close to be considered the same point 
     // (i.e the original point is on the circle circumference) 
     if (PVector.sub(p1,p2).mag() < EPS)

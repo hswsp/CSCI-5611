@@ -19,8 +19,24 @@ class MultiAgents
     {
       this.agents=new RRTAgent[AgentNum];
     }
+    HashSet<Integer> rowbias = new HashSet<Integer>();
+    HashSet<Integer> colbias = new HashSet<Integer>();
+    int biasnum=5;
+    RandomNumbers.randomSet(-biasnum,biasnum,2*biasnum,rowbias);
+    RandomNumbers.randomSet(-biasnum,biasnum,2*biasnum,colbias);
+    int [] row=new int[2*biasnum];
+    int [] col=new int[2*biasnum];
+    int m=0;
+    for (Integer s:rowbias) {
+      row[m++]=s;
+    }
+    m=0;
+     for (Integer s:colbias) {
+      col[m++]=s;
+    }
     for(int i=0;i<AgentNum;++i)
     {
+      
       if(type=="PRM")
       {
         this.agents[i] = new PRMAgent();
@@ -29,19 +45,21 @@ class MultiAgents
       {
         this.agents[i] = new RRTAgent();
       }
-      this.agents[i].start=new PVector(pow(-1,(i/2)%2+1)*9,pow(-1,((i+1)/2)%2+1)*9,0);
-      this.agents[i].goal=new PVector(pow(-1,(i/2)%2)*9,pow(-1,((i+1)/2)%2)*9,0);
+      this.agents[i].start=new PVector(pow(-1,(i/2)%2+1)*(roomw/3),pow(-1,((i+1)/2)%2+1)*(roomh/3),0);
+      this.agents[i].goal=new PVector(pow(-1,(i/2)%2)*(roomw/3),pow(-1,((i+1)/2)%2)*(roomh/3),0);
+      this.agents[i].start.x+=row[(i%(2*biasnum)+i/(2*biasnum))%(2*biasnum)];
+      this.agents[i].start.y+=col[i%(2*biasnum)];
       boids.add(new Boid(agents[i]));
     }
     if(AgentNum>1) //test
     {
       this.agents[0].goal=new PVector(-7,9,0); 
-      this.agents[1].start=new PVector(-9,9,0);
-      this.agents[1].goal=new PVector(-7,-9,0);
+      this.agents[1].start=new PVector(-7,9,0);
+      this.agents[1].goal=new PVector(-9,-9,0);
       this.agents[2].start=new PVector(-7,-9,0);
       this.agents[2].goal=new PVector(-9,9,0);
-      this.agents[3].start=new PVector(-7,9,0);
-      this.agents[3].goal=new PVector(-9,-9,0);
+      //this.agents[1].start=new PVector(-8,9,0);
+      //this.agents[1].goal=new PVector(-9,-9,0);
     }
     
     
@@ -138,20 +156,26 @@ class MultiAgents
   {
     for(int i=0;i<AgentNum;++i)
     {
-      agents[i].P.set(agents[i].start.x,agents[i].start.y,0).mult(mag);
+      this.agents[i].P.set(agents[i].start.x,agents[i].start.y,0).mult(mag);
       agents[i].space = new CylinderBall(agents[i].R);
+    }
+    update();
+  }
+   void update()
+   {
+    for(int i=0;i<AgentNum;++i)
+    {
+      this.agents[i].start.set(agents[i].P.x/mag,agents[i].P.y/mag,0);
       agents[i].Gen_Road();
       milestones[i]=genmilestonetime(agents[i]);
-      
       //for draw smooth path
       agents[i].targetItr=agents[i].Path.iterator();
       if(agents[i].targetItr.hasNext())
       {
         agents[i].NexttarId=agents[i].CurtarId = agents[i].targetItr.next();
-      }
-    }
-  }
-   
+      }  
+    }  
+   }
   
   
 }

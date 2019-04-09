@@ -19,48 +19,24 @@ void setup()
   
   //set cam
   cam = new QueasyCam(this);
+  perspective(PI/4, (float)width/height, 0.01, 10000);
   cam.speed = 2;              // default is 3
   cam.sensitivity = 0.5;      // default is 2
   cam.controllable = true;
-  cam.position = new PVector(0,0,850);//
+  
   cam.pan = -PI/2;
-  perspective(PI/3, (float)width/height, 0.01, 10000);
+  cam.position = new PVector(0,0,1200);//
+  
   InitialObstacles(pball,ballR);
   InitAgents();
-  //QP sol=new QP();
-  //double [][] A=new double[][] { { -1.0, 0.0 },{0.0,-1.0} }; // constraint x > 1,y>1
-  //double []b= new double[] { -1.0,-1.0};
-  //sol.InitQ(new double[][] { { 2.0, 0.0 }, { 0.0, 2.0 } },new double[] { -2.0, -2.0 },0.0);
-  //sol.InitLI(A,b);
-  //sol.solver(new double[] { 2.0, 2.0 } );
-  //println("xmin",sol.xmin[0],sol.xmin[1]);
-  //QuadraticFunction q = new QuadraticFunction(
-  //  new double[][] { { 1.0, 0.0 }, { 0.0, 1.0 } },
-  //  new double[] { 0.0, 0.0 },
-  //  0.0);
-  //// optimize function q with an inequality constraint and an equality constraint,
-  //// using the barrier method
-  //BarrierOptimizer barrier = new BarrierOptimizer();
-  //PointValuePair pvp = barrier.optimize(
-  //    new ObjectiveFunction(q),
-  //    new LinearInequalityConstraint(
-  //        new double[][] { { -1.0, 0.0 },{0.0,-1.0} }, // constraint x > 1,y>1
-  //        new double[] { -1.0,-1.0}),
-  //    //new LinearEqualityConstraint(
-  //        //new double[][] { { 1.0, 0.0 } },  // constraint y = 1,
-  //        //new double[] { 1.0 }),
-  //        null,
-  //    new InitialGuess(new double[] { 2.0, 2.0 }));
   
-  //double[] xmin = pvp.getFirst();  // { 1.0, 1.0 }
-  //double vmin = pvp.getSecond();   // 1.0
-  //println("xmin",sol.xmin[0],sol.xmin[1]);
 
 }
 void InitAgents()
 {
-  multiAgents=new MultiAgents("RRT",4);
+  multiAgents=new MultiAgents("RRT",agentnumber);
   multiAgents.init();
+  
 }
 
 
@@ -68,6 +44,7 @@ void update(float dt)
 {
   if(IsStartAnimation)
   {
+    
     //UpdateAgentSmooth(dt);
     UpdateAgentLinearly(dt);
   }
@@ -76,11 +53,11 @@ void update(float dt)
 void keyPressed() {
   if (keyCode == RIGHT) 
   {
-    
+    Agent0goal=true;  
   }
   if (keyCode == LEFT) 
   {
-   
+    Agent0Start=true;
   }
   if (keyCode == UP) {
     
@@ -88,9 +65,11 @@ void keyPressed() {
   if (keyCode == DOWN) {
    
   }
-  
+  if (keyCode == SHIFT) {
+   AddObstacle=true;
+  }
   if (keyCode == ENTER){
-   
+   cam.controllable = false;
   }
   
   if (keyCode == BACKSPACE){
@@ -103,16 +82,105 @@ void keyPressed() {
 }
 void keyReleased()
 {
-  
+  if (keyCode == RIGHT) 
+  {
+    Agent0goal=false;  
+  }
+  if (keyCode == LEFT) 
+  {
+    Agent0Start=false;
+  }
+  if (keyCode == SHIFT) {
+    AddObstacle=false;
+  }
+  if (keyCode == KeyEvent.VK_SPACE ){//SAPCE
+    IsStartAnimation=false;
+  }
+}
+void mouseClicked()
+{
+  float mX = map(mouseX,0,width,(-roomw/2-2.5)*mag,(roomw/2+2.5)*mag);
+  float mY = map(mouseY,0,height,(-roomh/2)*mag,(roomh/2)*mag);
+  if( AddObstacle)
+  {
+    AddObstacle(mX,mY);
+    multiAgents.update();
+  }
+  if(Agent0Start)
+  {
+    ChangeStart(mX,mY);
+    multiAgents.update();
+  }
+  if(Agent0goal)
+  {
+    ChnageGoal(mX,mY);
+    multiAgents.update();
+  }
 }
 void mouseDragged() 
-{  
+{ 
   
+  float mX = map(mouseX,0,width,(-roomw/2-2.5)*mag,(roomw/2+2.5)*mag);
+  float mY = map(mouseY,0,height,(-roomh/2)*mag,(roomh/2)*mag);
+  float mpX = map(pmouseX,0,width,(-roomw/2-2.5)*mag,(roomw/2+2.5)*mag);
+  float mpY = map(pmouseY,0,height,(-roomh/2)*mag,(roomh/2)*mag);
+  int ID=findObs(mpX,mpY);
+  if(ID!=-1){
+    pball[ID].x=mX;
+     pball[ID].y=mY;
+  }
+  multiAgents.update();
 }
 
+int findObs(float mX,float mY)
+{
+  float Epsilon=5E-1*mag;
+  for(int i=0;i<ObsNumber;++i)
+  {
+    if(abs(mX-pball[i].x)<Epsilon&&abs(mY-pball[i].y)<Epsilon){
+      return i;
+    }
+  }
+  return -1;
+}
+void AddObstacle(float mX, float mY)
+{
+  if(findObs(mX,mY)==-1)
+  {
+    ObsNumber+=1;
+    PVector[] pballnew=new PVector[ObsNumber];
+    float[] ballRnew = new float[ObsNumber];
+    for(int i=0;i<ObsNumber-1;++i)
+    {
+      pballnew[i]=pball[i];
+      ballRnew[i]=ballR[i];
+    }
+    pballnew[ObsNumber-1]=new PVector(mX,mY,0);
+    ballRnew[ObsNumber-1]= ballR[0];
+    pball=pballnew;
+    ballR=ballRnew;
+  }
+}
 
+void ChangeStart(float mX, float mY)
+{
+  if(multiAgents.agents!=null)
+  {
+    multiAgents.agents[0].P.x=mX;
+    multiAgents.agents[0].P.y=mY;
+  }
+}
+void ChnageGoal(float mX, float mY)
+{
+  if(multiAgents.agents!=null)
+  {
+    multiAgents.agents[0].goal.x=mX/mag;
+    multiAgents.agents[0].goal.y=mY/mag;
+  }
+}
 void draw() 
 {
+  //cam.controllable = false;
   //float dt=0.01;
   background(255,255,255);
   update(dt);
@@ -121,7 +189,7 @@ void draw()
   //spotLight(51, 102, 126, 0, 0, 20, 0, 0, -1, PI/2, 1);
   drawcylinder();
   drawsphere();
-  drawRoadmap();
+  //drawRoadmap();
   CheckeredFloor();
   
   drawPath();
@@ -193,21 +261,22 @@ void drawPath()
     Vector<PVector> samples= multiAgents.agents[i].samples;
     ArrayList<Integer>  Path=multiAgents.agents[i].Path;
     pushMatrix();
-    strokeWeight(5);
+    strokeWeight(2);
     for(int k=0;k<Path.size()-1;++k)
     {
       PVector P1=samples.get(Path.get(k));
       PVector P2=samples.get(Path.get(k+1));
       stroke((255+25*i)%256,(0+88*i)%256,(255+34*i)%256);
       line(P1.x,P1.y,Z,P2.x,P2.y,Z);
-      // show milestones
-      pushMatrix();
-      noStroke();
-      fill((186+25*i)%256,(85+88*i)%256,(211+34*i)%256);
-      translate(P1.x,P1.y,Z);
-      rotate(frameCount / -100.0);
-      star(0, 0, 10, 23, 6); 
-      popMatrix();
+      
+      //// show milestones
+      //pushMatrix();
+      //noStroke();
+      //fill((186+25*i)%256,(85+88*i)%256,(211+34*i)%256);
+      //translate(P1.x,P1.y,Z);
+      //rotate(frameCount / -100.0);
+      //star(0, 0, 10, 23, 6); 
+      //popMatrix();
     }
     popMatrix();
   }
@@ -224,20 +293,20 @@ void CheckeredFloor()
       // % is modulo, meaning rest of division 
       if (i%2 == 0) { 
         if (j%2 == 0) { 
-          fill (255, 0, 0);
+          fill(128,128,128) ;//(255, 0, 0)
         }
         else
         {
-          fill (182, 155, 76 );
+          fill(0) ;//(182, 155, 76 )
         }
       }  
       else {
         if (j%2 == 0) { 
-          fill (182, 155, 76);
+          fill(0) ;//(182, 155, 76)
         }
         else
         {
-           fill (255, 0, 0); 
+           fill(128) ; //(255, 0, 0)
         }
       } // if
       pushMatrix();
@@ -262,14 +331,18 @@ void drawcylinder()
     drawCylinder( 30, R , H );
     popMatrix();
   }
-  //if(bestline!=null)
-  //{
-  //  stroke(126);
-  //  strokeWeight(5);
-  //  line(multiAgents.agents[1].P.x, multiAgents.agents[1].P.y, multiAgents.agents[1].H/2*mag,
-  //  multiAgents.agents[1].P.x+5*mag*bestline.direction.x, multiAgents.agents[1].P.y+5*mag*bestline.direction.y, 
-  //  multiAgents.agents[1].H/2*mag+5*mag*bestline.direction.z);
-  //}
+
+  stroke(255,0,0);
+  strokeWeight(5);
+  for(int k=0;k<2;++k){
+    if(bestline[k]!=null)
+    {
+      line(multiAgents.agents[1].P.x, multiAgents.agents[1].P.y, multiAgents.agents[1].H/2*mag,
+      multiAgents.agents[1].P.x+5*mag*bestline[k].direction.x, multiAgents.agents[1].P.y+5*mag*bestline[k].direction.y, 
+      multiAgents.agents[1].H/2*mag+5*mag*bestline[k].direction.z);
+    }
+  }
+ 
 }
 void drawsphere()
 {
@@ -287,7 +360,7 @@ void drawsphere()
 
 boolean Arrival(PVector destination,PVector agentP)
 {
-  float threshold=.1*mag;
+  float threshold=.5*mag;
   if(PVector.sub(destination,agentP).mag()<threshold)
   { 
     return true;
@@ -324,7 +397,7 @@ void UpdateAgentLinearly(float dt)
     multiAgents.agents[i].forward.set(PVector.mult(forward,multiAgents.agents[i].Vel)); 
     multiAgents.boids.get(i).velocity=forward;
   }
-  
+  bestline=new Line[2];
   ArrayList<PVector> Vel=Local.LocalIntersection(multiAgents.agents,multiAgents.AgentNum);
   for(int i=0;i<multiAgents.AgentNum;++i)
   {

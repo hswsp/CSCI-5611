@@ -42,7 +42,7 @@ abstract class Agent
   float R;
   float H;
   PVector P;
-  PVector forward;
+  PVector forward;  //only represent towards, norm==1;
   PVector goal;
   PVector start;
   float Vel;
@@ -62,7 +62,7 @@ abstract class Agent
     goal=new PVector(9,9,0);
     start = new PVector(-9,-9,0);
     forward = new PVector();
-    R=0.5;
+    R=AgentsR;
     H=3*R;
     P=new PVector(start.x,start.y,start.z);
     Vel=3*mag;

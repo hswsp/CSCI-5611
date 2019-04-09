@@ -29,7 +29,7 @@ public class Line
      * @param direction The direction of the directed line.
      */
     public Line(PVector point, PVector direction) {
-        this.direction = direction.normalize();
+        this.direction = new PVector(direction.x,direction.y,direction.z).normalize();
         this.point = point;
     }
     
@@ -47,7 +47,8 @@ public class Line
        return : intersaction point
        
       */
-      if(line1.direction==line2.direction ||line1.direction==PVector.mult(line2.direction,-1))
+      PVector l1crossl2=new PVector();
+      if(PVector.cross(line1.direction,line2.direction,l1crossl2).mag()<1E-5)//==line2.direction ||line1.direction==PVector.mult(line2.direction,-1)
         return null;
       else
       {

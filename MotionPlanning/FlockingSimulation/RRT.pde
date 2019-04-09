@@ -197,6 +197,7 @@ class RRTAgent extends Agent
   
   void Gen_Road()
   {
+    //long startTime=System.currentTimeMillis(); 
     SearchTree rrt;
     try
     {
@@ -207,6 +208,9 @@ class RRTAgent extends Agent
        RuntimeException exception = new RuntimeException(e);
        throw  exception;
     }
+    //long endTime=System.currentTimeMillis(); 
+    //System.out.println("time for RRT "+(endTime-startTime)+"ms");
+   
     Node cur=rrt.goal;
     Stack<Integer> stack = new Stack();
     Path= new ArrayList<Integer> (samples.size());
@@ -225,6 +229,7 @@ class RRTAgent extends Agent
     
     // show map
     //initial
+    
     int dimension=samples.size();
     weightmap =new Float[dimension][];
     for(int i=0;i<dimension;++i)
@@ -236,6 +241,7 @@ class RRTAgent extends Agent
       }
     }
     levelTraverse(rrt,weightmap);
+   
   }
   
   void levelTraverse(SearchTree Tree,Float[][]weightmap)

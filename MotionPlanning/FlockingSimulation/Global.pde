@@ -4,18 +4,18 @@ import java.util.Iterator;
 
 /*draw picture*/
 static float mag=50;
-static float Z=.2*mag;
+static float Z=.5*mag;
 
 /*global about floor*/
 static float Floorz=0;
-static int roomw=21;
-static int roomh=21;
+static int roomw=21;//101
+static int roomh=21;//101
 
 MultiAgents multiAgents;
 /*ball obstacle*/
-static int ObsNumber=5;
-static PVector[] pball=new PVector[ObsNumber];
-static float[] ballR = new float[ObsNumber];
+int ObsNumber=5;
+PVector[] pball=new PVector[ObsNumber];
+float[] ballR = new float[ObsNumber];
 
 /*road map*/
 static int K=5;//K-NN
@@ -25,5 +25,10 @@ static boolean IsStartAnimation=false;
 
 /*animation*/
 float dt=0.01;
+boolean AddObstacle=false;
+boolean Agent0Start=false;
+boolean Agent0goal=false;
+Line[] bestline=new Line[2];
 
-//Line bestline;
+static int agentnumber=3;
+static float AgentsR=0.5;

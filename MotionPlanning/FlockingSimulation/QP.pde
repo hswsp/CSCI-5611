@@ -36,10 +36,15 @@ import com.manyangled.gibbous.optim.convex.*;
    {
      LE = new LinearEqualityConstraint(A,b); 
    }
-   void solver(double[] InitialG) //Initial must in feasible region
+   void solver() //Initial must in feasible region
    {
+     // solve for a feasible point that satisfies the constraints
+      PointValuePair fpvp = ConvexOptimizer.feasiblePoint(this.LI, this.LE);
+      // if not < 0, there is no feasible point
+      assert fpvp.getSecond() < 0.0;
+      double[] ig = fpvp.getFirst();
      BarrierOptimizer barrier = new BarrierOptimizer();
-     PointValuePair pvp = barrier.optimize(new ObjectiveFunction(q),LI,LE,new InitialGuess(InitialG));
+     PointValuePair pvp = barrier.optimize(new ObjectiveFunction(q),LI,LE,new InitialGuess(ig));
      xmin = pvp.getFirst();
      vmin = pvp.getSecond();
    }
