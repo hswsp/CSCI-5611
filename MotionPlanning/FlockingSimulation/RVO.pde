@@ -95,7 +95,6 @@ class RVO
     if(minIntersaction!=null)
     {
       ArrayList<Double> lines = new  ArrayList<Double>();
-      println("RVOLine.direction.y",RVOLine.direction.y);
       lines.add((double)RVOLine.direction.y);
       lines.add(-1*((double)RVOLine.direction.x));
       double btemp=(double)RVOLine.direction.y*RVOLine.point.x-(double)RVOLine.direction.x*RVOLine.point.y;
@@ -130,13 +129,12 @@ class RVO
       if(Intersaction!=null&&PVector.dist(Intersaction,VA)<minLen)
       {
         minIntersaction=Intersaction;
-        bestline[n]=new Line();
-        bestline[n].direction=new PVector((float)(double)(A.get(n).get(1)),(float)-A.get(n).get(0),0);
-        n++;
+        //bestline[n]=new Line();
+        //bestline[n].direction=new PVector((float)(double)(A.get(n).get(1)),(float)-A.get(n).get(0),0);
+        //n++;
       }
     //<>//
     }
-    println("n:",n);
     /*check static obstacle*/
     for(int j=0;j<ObsNumber;++j)
     {
@@ -156,7 +154,6 @@ class RVO
         PVector relcrossTan=new PVector();
         PVector relcrossTan1=new PVector();
         if(PVector.cross(points.get(0),rel,relcrossTan).dot(PVector.cross(points.get(1),rel,relcrossTan1))>0){
-         println("out!"); 
          continue; //outside cons, return null
         }
       }

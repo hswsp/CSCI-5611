@@ -3,13 +3,13 @@ import java.util.Iterator;
 
 
 /*draw picture*/
-static float mag=50;
+static float mag=10;
 static float Z=.5*mag;
 
 /*global about floor*/
 static float Floorz=0;
-static int roomw=21;//101
-static int roomh=21;//101
+static int roomw=101;//21
+static int roomh=101;// 21
 
 MultiAgents multiAgents;
 /*ball obstacle*/
@@ -30,5 +30,5 @@ boolean Agent0Start=false;
 boolean Agent0goal=false;
 Line[] bestline=new Line[2];
 
-static int agentnumber=3;
+static int agentnumber=20;
 static float AgentsR=0.5;

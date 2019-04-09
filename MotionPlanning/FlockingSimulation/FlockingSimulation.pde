@@ -45,8 +45,8 @@ void update(float dt)
   if(IsStartAnimation)
   {
     
-    //UpdateAgentSmooth(dt);
-    UpdateAgentLinearly(dt);
+    UpdateAgentSmooth(dt);
+    //UpdateAgentLinearly(dt);
   }
 }
 //Allow the user to push the mass with the left and right keys
@@ -94,7 +94,7 @@ void keyReleased()
     AddObstacle=false;
   }
   if (keyCode == KeyEvent.VK_SPACE ){//SAPCE
-    IsStartAnimation=false;
+    //IsStartAnimation=false;
   }
 }
 void mouseClicked()
@@ -332,16 +332,16 @@ void drawcylinder()
     popMatrix();
   }
 
-  stroke(255,0,0);
-  strokeWeight(5);
-  for(int k=0;k<2;++k){
-    if(bestline[k]!=null)
-    {
-      line(multiAgents.agents[1].P.x, multiAgents.agents[1].P.y, multiAgents.agents[1].H/2*mag,
-      multiAgents.agents[1].P.x+5*mag*bestline[k].direction.x, multiAgents.agents[1].P.y+5*mag*bestline[k].direction.y, 
-      multiAgents.agents[1].H/2*mag+5*mag*bestline[k].direction.z);
-    }
-  }
+  //stroke(255,0,0);
+  //strokeWeight(5);
+  //for(int k=0;k<2;++k){
+  //  if(bestline[k]!=null)
+  //  {
+  //    line(multiAgents.agents[1].P.x, multiAgents.agents[1].P.y, multiAgents.agents[1].H/2*mag,
+  //    multiAgents.agents[1].P.x+5*mag*bestline[k].direction.x, multiAgents.agents[1].P.y+5*mag*bestline[k].direction.y, 
+  //    multiAgents.agents[1].H/2*mag+5*mag*bestline[k].direction.z);
+  //  }
+  //}
  
 }
 void drawsphere()
@@ -397,7 +397,7 @@ void UpdateAgentLinearly(float dt)
     multiAgents.agents[i].forward.set(PVector.mult(forward,multiAgents.agents[i].Vel)); 
     multiAgents.boids.get(i).velocity=forward;
   }
-  bestline=new Line[2];
+  //bestline=new Line[2];
   ArrayList<PVector> Vel=Local.LocalIntersection(multiAgents.agents,multiAgents.AgentNum);
   for(int i=0;i<multiAgents.AgentNum;++i)
   {
@@ -422,6 +422,7 @@ void UpdateAgentLinearly(float dt)
 /*Implement  path  smoothing*/
 void UpdateAgentSmooth(float dt)
 {
+  RVO Local=new RVO();
   for(int i=0;i<multiAgents.AgentNum;++i)
   {
     Vector<PVector> samples= multiAgents.agents[i].samples;
@@ -443,7 +444,7 @@ void UpdateAgentSmooth(float dt)
         continue;
       }
     }
-    if(intersection(agentP,0,NextTarget,0,multiAgents.agents[i].space))
+    if(intersection(agentP,0,NextTarget,0,multiAgents.agents[i].space))// //<>//
     {
       forward=PVector.sub(CurTarget,agentP).normalize();
     }
@@ -456,6 +457,27 @@ void UpdateAgentSmooth(float dt)
         multiAgents.agents[i].NexttarId = multiAgents.agents[i].targetItr.next();
       }
     }
-    agentP.add(PVector.mult(forward,multiAgents.agents[i].Vel*dt));
+    forward=PVector.sub(CurTarget,agentP).normalize();
+    forward.z=0;
+    multiAgents.agents[i].forward.set(PVector.mult(forward,multiAgents.agents[i].Vel)); 
+    multiAgents.boids.get(i).velocity=forward;
+    //agentP.add(PVector.mult(forward,multiAgents.agents[i].Vel*dt));
+  }
+  ArrayList<PVector> Vel=Local.LocalIntersection(multiAgents.agents,multiAgents.AgentNum);
+  for(int i=0;i<multiAgents.AgentNum;++i)
+  {
+    if(!Arrival(multiAgents.agents[i].P,PVector.mult(multiAgents.agents[i].goal,mag)))
+    {
+      /*************************RVO******************************/
+      if(Vel!=null){
+      multiAgents.agents[i].P.add(PVector.mult(Vel.get(i),dt));
+      }
+      else{
+        multiAgents.agents[i].P.add(PVector.mult( multiAgents.agents[i].forward,dt));
+      }
+      /*************************Boids*******************************/
+      //multiAgents.boids.get(i).flock(multiAgents.boids);
+      //multiAgents.boids.get(i).update();
+    }
   }
 }

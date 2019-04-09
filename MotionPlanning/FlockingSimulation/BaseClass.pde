@@ -65,7 +65,7 @@ abstract class Agent
     R=AgentsR;
     H=3*R;
     P=new PVector(start.x,start.y,start.z);
-    Vel=3*mag;
+    Vel=10*mag;
     samples=new Vector(roomw*roomh);
   } 
 }
