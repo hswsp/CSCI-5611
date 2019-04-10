@@ -106,7 +106,7 @@ class RRTAgent extends Agent
     for(Node Xnearst : neighbor)
     {
       PVector Xneighbors= samples.get(Xnearst.Index);
-      float cost=Xnearst.g+PVector.sub(Xneighbors,Xrand).mag();
+      float cost=Xnearst.g+PVector.sub(Xneighbors,Xrand).mag(); 
       if(cost<Cmin)
       {
         Xbest=Xnearst;
@@ -182,7 +182,7 @@ class RRTAgent extends Agent
         Node END=new Node(samples.indexOf(g));
         rewire(rrt,END);
         rrt.goal=END;
-        println("Reach Goal!");
+       // println("Reach Goal!");
         break;
       }
       else if(iter>=Maxiter)

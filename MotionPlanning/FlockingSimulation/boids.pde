@@ -4,8 +4,8 @@ class Boid {
   PVector velocity;
   PVector acceleration;
   float r;
-  float maxCohforce;    // Maximum steering force
-  float maxsepforce;
+  float maxCohforce;    // Maximum cohesion force and Alignment forece
+  float maxsepforce;    //Maximun separation force
   float maxspeed;    // Maximum speed
     Boid(Agent agent) {
     acceleration = new PVector(0, 0);
@@ -13,8 +13,8 @@ class Boid {
     this.position = agent.P;
     r = agent.R;
     maxspeed = agent.Vel;
-    maxsepforce = 0.05*mag;
-    maxCohforce = 0.01*mag;
+    maxsepforce = 1.8E-2*mag;
+    maxCohforce = 1E-3*mag;
   }
 
   void applyForce(PVector force) {
@@ -29,11 +29,12 @@ class Boid {
     // Arbitrarily weight these forces
     sep.mult(1.5);
     ali.mult(1.0);
-    coh.mult(1.0);
+    coh.mult(1.0); 
     // Add the force vectors to acceleration
     applyForce(sep);
     applyForce(ali);
     applyForce(coh);
+
   }
 
   // Method to update position
@@ -54,7 +55,7 @@ class Boid {
     // Scale to maximum speed
     desired.normalize();
     desired.mult(maxspeed);
-    // Steering = Desired - Velocity
+    // Steering = Desired minus Velocity
     PVector steer = PVector.sub(desired, velocity);
     steer.limit(maxCohforce);  // Limit to maximum steering force
     return steer;
@@ -75,9 +76,9 @@ class Boid {
         // Calculate vector pointing away from neighbor
         PVector diff = PVector.sub(position, other.position);
         diff.normalize();
-         if(d<=minseparation)
+         if(d<=desiredseparation)
         {
-          diff.mult(maxsepforce);
+          diff.mult(maxsepforce*mag);
         }
         else{
          diff.div(d-minseparation);  // Weight by distance
@@ -86,7 +87,8 @@ class Boid {
         count++;            // Keep track of how many
       }
     }
-    // seperate from static obstacles
+    
+    /*seperate from static obstacles*/ 
     for (int i=0;i<ObsNumber;++i) {
       float minseparation=(this.r+ballR[i])*mag;
       float desiredseparation = 1.1*minseparation;
@@ -96,9 +98,9 @@ class Boid {
         // Calculate vector pointing away from neighbor
         PVector diff = PVector.sub(position, pball[i]);
         diff.normalize();
-        if(d<=minseparation)
+        if(d<=desiredseparation)
         {
-          diff.mult(maxsepforce);
+          diff.mult(maxsepforce*mag);
         }
         else{
          diff.div(d-minseparation);

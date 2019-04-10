@@ -18,7 +18,7 @@ class PRMAgent extends Agent
   {
     
     int [][]room=new int [roomw][roomh];
-    int Maxiter=50;
+    int Maxiter=100;
     for(int[] row:room)
     {
       for(int p:row)
@@ -125,6 +125,7 @@ class PRMAgent extends Agent
     
   void AStarSearch(ArrayList<Node>  CLOSED)
   {
+    float epsilon=1.0;
     int dimension=samples.size();
     Queue<Node> OPEN = new PriorityQueue<Node>(dimension,idComparator);
     Node Start=new Node(0);
@@ -147,7 +148,7 @@ class PRMAgent extends Agent
         }
         successor.g = q.g + weightmap[successor.Index][q.Index];
         successor.h = PVector.sub(samples.get(dimension-1),samples.get(successor.Index)).mag();//Euclidean Heuristics
-        successor.f = successor.g + successor.h;
+        successor.f = successor.g + epsilon*successor.h;
         /*if a node with the same position as 
           successor is in the OPEN list which has a 
           lower f than successor, skip this successor*/
@@ -230,8 +231,20 @@ class PRMAgent extends Agent
   
   void Gen_Road()
   {
-    PRM();
-    SearchRoad();
+    try
+    {
+      PRM();
+      long startTime=System.currentTimeMillis(); 
+      SearchRoad();
+      long endTime=System.currentTimeMillis(); 
+      System.out.println("time for A* "+(endTime-startTime)+"ms");
+    }
+    catch(RuntimeException e)
+    {
+       RuntimeException exception = new RuntimeException(e);
+       throw  exception;
+    }
+
   }
 }
 

@@ -51,16 +51,26 @@ class MultiAgents
       this.agents[i].start.y+=col[i%(2*biasnum)];
       boids.add(new Boid(agents[i]));
     }
-    //if(AgentNum>1) //test
-    //{
-    //  this.agents[0].goal=new PVector(-7,9,0); 
-    //  this.agents[1].start=new PVector(-7,9,0);
-    //  this.agents[1].goal=new PVector(-9,-9,0);
-    //  this.agents[2].start=new PVector(-7,-9,0);
-    //  this.agents[2].goal=new PVector(-9,9,0);
-    //  //this.agents[1].start=new PVector(-8,9,0);
-    //  //this.agents[1].goal=new PVector(-9,-9,0);
-    //}
+    //for test
+    if(testmode) 
+    {
+      this.agents[0].start=new PVector(-5,-5,0);
+      this.agents[0].goal=new PVector(5,5,0); 
+      this.agents[1].start=new PVector(-5,5,0);
+      this.agents[1].goal=new PVector(5,-5,0);
+      this.agents[2].start=new PVector(5,5,0);
+      this.agents[2].goal=new PVector(-5,-5,0);
+      this.agents[3].start=new PVector(5,-5,0);
+      this.agents[3].goal=new PVector(-5,5,0);
+      this.agents[4].start=new PVector(-7,0,0);
+      this.agents[4].goal=new PVector(7,0,0);
+      this.agents[5].start=new PVector(7,0,0);
+      this.agents[5].goal=new PVector(-7,0,0);
+      //this.agents[6].start=new PVector(-7,3,0);
+      //this.agents[6].goal=new PVector(7,-3,0);
+      //this.agents[7].start=new PVector(7,-3,0);
+      //this.agents[7].goal=new PVector(-7,3,0);
+    }
     
     
   }

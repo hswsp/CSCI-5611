@@ -22,7 +22,7 @@ class RVO
     /*set S to origin
     SO=S-O
     */
-    PVector PinLine=PVector.add(SO,PVector.mult(SO.normalize(),-((ObstacleR+AR)*mag+AVel*dt*2)));
+    PVector PinLine=PVector.add(SO,PVector.mult(SO.normalize(),-((ObstacleR+AR)*mag+AVel*dt)));
     Line line=new Line(SO,PVector.mult(SO,-1).normalize());
     return line.Perpendicular(PinLine);
   }
@@ -34,7 +34,7 @@ class RVO
     float minLen=Float.MAX_VALUE;
     PVector Reciprocal=PVector.add(PVector.mult(VA,0.5),PVector.mult(VB,0.5));
     // distance constraints
-    if(PB.mag()>(Ra+Rb)*mag+VA.mag()*dt*3)
+    if(PB.mag()>(Ra+Rb)*mag+VA.mag()*dt)
       return null;
     ArrayList<PVector> points=CircleT.pointCircleTangentPoints(PB,(Ra+Rb)*mag,new PVector(0,0,0));
     if(points.size()==2) 
@@ -79,17 +79,17 @@ class RVO
     }
  
     // add verticle constraints
-    //Line Vline=VerticalLine(PB,Rb, Ra, VA.mag()); 
-    //Vline.point.add(Reciprocal);
-    //Line VAtoVl = new Line(VA,new PVector(-Vline.direction.y,Vline.direction.x,0));
-    //PVector Intersection=Vline.Intersection(Vline,VAtoVl);
-    //float Vdistance=PVector.dist(Intersection,VA);
-    //if(Vdistance<minLen)
-    //{
-    //  minLen=Vdistance;
-    //  RVOLine=Vline;
-    //  minIntersaction=Intersection;
-    //}
+    Line Vline=VerticalLine(PB,Rb, Ra, VA.mag()); 
+    Vline.point.add(Reciprocal);
+    Line VAtoVl = new Line(VA,new PVector(-Vline.direction.y,Vline.direction.x,0));
+    PVector Intersection=Vline.Intersection(Vline,VAtoVl);
+    float Vdistance=PVector.dist(Intersection,VA);
+    if(Vdistance<minLen)
+    {
+      minLen=Vdistance;
+      RVOLine=Vline;
+      minIntersaction=Intersection;
+    }
     
     /******************add the optimal line to LP ***************/
     if(minIntersaction!=null)
@@ -188,6 +188,18 @@ class RVO
           minIntersaction=Intersection;
         }
       }
+      // add verticle constraints
+      Line Vline=VerticalLine(PB,ballR[j], R, VA.mag()); 
+      Vline.point.add(Reciprocal);
+      Line VAtoVl = new Line(VA,new PVector(-Vline.direction.y,Vline.direction.x,0));
+      PVector Intersection=Vline.Intersection(Vline,VAtoVl);
+      float Vdistance=PVector.dist(Intersection,VA);
+      if(Vdistance<minLen)
+      {
+        minLen=Vdistance;
+        RVOLine=Vline;
+        minIntersaction=Intersection;
+      }
       //add the optimal line to LP 
       ArrayList<Double> lines = new  ArrayList<Double>();
       lines.add((double)RVOLine.direction.y);
@@ -242,7 +254,11 @@ class RVO
       QP sol=new QP();
       sol.InitQ(new double[][] { { 2.0, 0.0 }, { 0.0, 2.0 } },new double[] { -2*VA.x, -2*VA.y },VA.x*VA.x+VA.y*VA.y);
       sol.InitLI(A,b);
-      sol.solver();//new double[] {agents[j].forward.x-mag*A[0][0], agents[j].forward.y-mag*A[0][1]} 
+      sol.solver();
+      //if(!sol.solver()){
+      //  Vel.add(PVector.mult(VA,-1));
+      //  continue;
+      //}
       Vel.add(new PVector((float)sol.xmin[0],(float)sol.xmin[1],0));
     }
     return Vel;

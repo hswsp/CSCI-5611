@@ -3,7 +3,7 @@ void InitialObstacles(PVector pball[],float ballR[])
  {
    for(int i=0;i<ObsNumber;++i)
    {
-     ballR[i]=5;
+     ballR[i]=BallR;
      pball[i]=new PVector(0,0,0).mult(mag);
    }
    pball[0]=new PVector(0,0,0).mult(mag);
@@ -11,6 +11,7 @@ void InitialObstacles(PVector pball[],float ballR[])
    pball[2]=new PVector(-roomw/5,roomh/5,0).mult(mag);
    pball[3]=new PVector(-roomw/5,-roomh/5,0).mult(mag);
    pball[4]=new PVector(roomw/5,-roomh/5,0).mult(mag);
+   
  }
 
 interface CSpace

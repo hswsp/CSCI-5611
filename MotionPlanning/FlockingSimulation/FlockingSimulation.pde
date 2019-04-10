@@ -26,8 +26,17 @@ void setup()
   
   cam.pan = -PI/2;
   cam.position = new PVector(0,0,1200);//
-  
-  InitialObstacles(pball,ballR);
+  if(!testmode){
+    InitialObstacles(pball,ballR);
+  }
+  else
+  {
+    ObsNumber=0;
+    mag=50;
+    roomw=roomh=21;
+    BallR=2;
+    agentnumber=6;
+  }
   InitAgents();
   
 
@@ -75,7 +84,8 @@ void keyPressed() {
   if (keyCode == BACKSPACE){
     
   }
-  if (keyCode == KeyEvent.VK_SPACE ){//SAPCE
+  if (keyCode == KeyEvent.VK_SPACE ){
+    //SAPCE
     IsStartAnimation=true;
   }
   
@@ -93,7 +103,8 @@ void keyReleased()
   if (keyCode == SHIFT) {
     AddObstacle=false;
   }
-  if (keyCode == KeyEvent.VK_SPACE ){//SAPCE
+  if (keyCode == KeyEvent.VK_SPACE ){
+    //for test
     //IsStartAnimation=false;
   }
 }
@@ -190,8 +201,7 @@ void draw()
   drawcylinder();
   drawsphere();
   //drawRoadmap();
-  CheckeredFloor();
-  
+  CheckeredFloor(); 
   drawPath();
 }
 void star(float x, float y, float radius1, float radius2, int npoints) 
@@ -269,7 +279,7 @@ void drawPath()
       stroke((255+25*i)%256,(0+88*i)%256,(255+34*i)%256);
       line(P1.x,P1.y,Z,P2.x,P2.y,Z);
       
-      //// show milestones
+      /**********show milestones*************/ 
       //pushMatrix();
       //noStroke();
       //fill((186+25*i)%256,(85+88*i)%256,(211+34*i)%256);
@@ -398,23 +408,30 @@ void UpdateAgentLinearly(float dt)
     multiAgents.boids.get(i).velocity=forward;
   }
   //bestline=new Line[2];
-  ArrayList<PVector> Vel=Local.LocalIntersection(multiAgents.agents,multiAgents.AgentNum);
+  
   for(int i=0;i<multiAgents.AgentNum;++i)
   {
     if(!Arrival(multiAgents.agents[i].P,PVector.mult(multiAgents.agents[i].goal,mag)))
     {
-      /*************************RVO******************************/
-      if(Vel!=null){
-      multiAgents.agents[i].P.add(PVector.mult(Vel.get(i),dt));
-      }
-      else{
-        multiAgents.agents[i].P.add(PVector.mult( multiAgents.agents[i].forward,dt));
-      }
-      /*************************Boids*******************************/
-      //multiAgents.boids.get(i).flock(multiAgents.boids);
-      //multiAgents.boids.get(i).update();
+       switch(LocTech)
+      {
+        case 1:
+        /*************************RVO******************************/
+        ArrayList<PVector> Vel=Local.LocalIntersection(multiAgents.agents,multiAgents.AgentNum);
+        if(Vel!=null){
+        multiAgents.agents[i].P.add(PVector.mult(Vel.get(i),dt));
+        }
+        else{
+          multiAgents.agents[i].P.add(PVector.mult( multiAgents.agents[i].forward,dt));
+        }
+        break;
+      case 2:
+        /*************************Boids*******************************/
+        multiAgents.boids.get(i).flock(multiAgents.boids);
+        multiAgents.boids.get(i).update();
+      break;
+     }
     }
-    
   }
   
 }
@@ -432,19 +449,23 @@ void UpdateAgentSmooth(float dt)
     PVector forward=new PVector();
     if(Arrival(CurTarget,agentP))
     {
+      multiAgents.agents[i].CurtarId = multiAgents.agents[i].NexttarId;
       if(multiAgents.agents[i].targetItr.hasNext())
       {
-        multiAgents.agents[i].CurtarId = multiAgents.agents[i].targetItr.next();
-        CurTarget=samples.get(multiAgents.agents[i].CurtarId);
-        multiAgents.agents[i].NexttarId = multiAgents.agents[i].targetItr.next();
-        NextTarget=samples.get(multiAgents.agents[i].NexttarId);
+        //multiAgents.agents[i].CurtarId = multiAgents.agents[i].targetItr.next();
+        //CurTarget=samples.get(multiAgents.agents[i].CurtarId);
+        //if(multiAgents.agents[i].targetItr.hasNext())
+        //{
+          multiAgents.agents[i].NexttarId = multiAgents.agents[i].targetItr.next();
+          NextTarget=samples.get(multiAgents.agents[i].NexttarId);
+        //}
       }
       else
       {
         continue;
       }
     }
-    if(intersection(agentP,0,NextTarget,0,multiAgents.agents[i].space))// //<>//
+    if(intersection(agentP,0,NextTarget,0,multiAgents.agents[i].space))//
     {
       forward=PVector.sub(CurTarget,agentP).normalize();
     }
@@ -461,23 +482,32 @@ void UpdateAgentSmooth(float dt)
     forward.z=0;
     multiAgents.agents[i].forward.set(PVector.mult(forward,multiAgents.agents[i].Vel)); 
     multiAgents.boids.get(i).velocity=forward;
-    //agentP.add(PVector.mult(forward,multiAgents.agents[i].Vel*dt));
+   //PVector steer=multiAgents.boids.get(i).seek(CurTarget);
+   //println("steer,CurTarget,position:",steer,CurTarget,multiAgents.boids.get(i).position);
+   //multiAgents.boids.get(i).steer.set(steer.x,steer.y,0);
   }
-  ArrayList<PVector> Vel=Local.LocalIntersection(multiAgents.agents,multiAgents.AgentNum);
   for(int i=0;i<multiAgents.AgentNum;++i)
   {
     if(!Arrival(multiAgents.agents[i].P,PVector.mult(multiAgents.agents[i].goal,mag)))
     {
-      /*************************RVO******************************/
-      if(Vel!=null){
-      multiAgents.agents[i].P.add(PVector.mult(Vel.get(i),dt));
-      }
-      else{
-        multiAgents.agents[i].P.add(PVector.mult( multiAgents.agents[i].forward,dt));
-      }
-      /*************************Boids*******************************/
-      //multiAgents.boids.get(i).flock(multiAgents.boids);
-      //multiAgents.boids.get(i).update();
+      switch(LocTech)
+      {
+        case 1:
+          /*************************RVO******************************/
+        ArrayList<PVector> Vel=Local.LocalIntersection(multiAgents.agents,multiAgents.AgentNum);
+        if(Vel!=null){
+        multiAgents.agents[i].P.add(PVector.mult(Vel.get(i),dt));
+        }
+        else{
+          multiAgents.agents[i].P.add(PVector.mult( multiAgents.agents[i].forward,dt));
+        }
+        break;
+        case 2:
+        /*************************Boids*******************************/
+        multiAgents.boids.get(i).flock(multiAgents.boids);
+        multiAgents.boids.get(i).update();
+        break;
+      } 
     }
   }
 }

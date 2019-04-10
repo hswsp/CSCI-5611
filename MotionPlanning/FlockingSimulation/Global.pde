@@ -8,12 +8,13 @@ static float Z=.5*mag;
 
 /*global about floor*/
 static float Floorz=0;
-static int roomw=101;//21
+static int roomw=101;// 21
 static int roomh=101;// 21
 
 MultiAgents multiAgents;
 /*ball obstacle*/
-int ObsNumber=5;
+static int ObsNumber=5;
+static float BallR=5;
 PVector[] pball=new PVector[ObsNumber];
 float[] ballR = new float[ObsNumber];
 
@@ -32,3 +33,6 @@ Line[] bestline=new Line[2];
 
 static int agentnumber=20;
 static float AgentsR=0.5;
+static int LocTech=1;// 1 for ORCA and 2 for boids
+
+static boolean testmode=false;
